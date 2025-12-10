@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\SopResource\Pages;
 
 use App\Filament\Resources\SopResource;
+use App\Events\SopStatusChanged;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\ViewRecord;
@@ -142,6 +143,20 @@ class ViewSop extends ViewRecord
                         status: 'approved'
                     );
 
+                    // Broadcast event untuk real-time notification
+                    if ($recipient) {
+                        event(new SopStatusChanged(
+                            recipient: $recipient,
+                            sop: $this->record,
+                            status: 'approved',
+                            title: '🎉 SOP Disetujui!',
+                            body: "Selamat! SOP \"{$this->record->sop_name}\" telah disetujui oleh {$verifikator->name}.",
+                            icon: 'heroicon-o-check-badge',
+                            color: 'success',
+                            verifikatorName: $verifikator->name
+                        ));
+                    }
+
                     Notification::make()
                         ->title('✅ SOP Berhasil Disetujui')
                         ->body($recipient ? "Notifikasi telah dikirim ke {$recipient->name}" : "Peringatan: Pembuat SOP tidak ditemukan!")
@@ -197,6 +212,20 @@ class ViewSop extends ViewRecord
                         sopId: $this->record->id,
                         status: 'rejected'
                     );
+
+                    // Broadcast event untuk real-time notification
+                    if ($recipient) {
+                        event(new SopStatusChanged(
+                            recipient: $recipient,
+                            sop: $this->record,
+                            status: 'rejected',
+                            title: '⚠️ SOP Perlu Revisi',
+                            body: "SOP \"{$this->record->sop_name}\" memerlukan perbaikan. Catatan: {$data['feedback']}",
+                            icon: 'heroicon-o-exclamation-triangle',
+                            color: 'danger',
+                            verifikatorName: $verifikator->name
+                        ));
+                    }
 
                     Notification::make()
                         ->title('❌ SOP Ditolak')

@@ -19,6 +19,8 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Althinect\FilamentSpatieRolesPermissions\FilamentSpatieRolesPermissionsPlugin;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Contracts\View\View;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -57,7 +59,12 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->plugin(FilamentSpatieRolesPermissionsPlugin::make())
-            ->databaseNotifications();
-        ;
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('5s')
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): View => view('filament.partials.echo-scripts')
+            );
     }
 }
+

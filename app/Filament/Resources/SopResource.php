@@ -395,53 +395,68 @@ class SopResource extends Resource
     {
         return $table
             ->columns([
+                // === Kolom Utama ===
                 Tables\Columns\TextColumn::make('id_sop')
                     ->label('ID SOP')
                     ->searchable()
+                    ->sortable()
                     ->copyable()
-                    ->copyMessage('ID SOP disalin!'),
-                Tables\Columns\TextColumn::make('sk_number')
-                    ->label('Nomor SK')
-                    ->searchable(),
+                    ->copyMessage('ID SOP disalin!')
+                    ->copyMessageDuration(1500)
+                    ->weight('bold')
+                    ->color('primary')
+                    ->icon('heroicon-o-hashtag')
+                    ->tooltip('Klik untuk menyalin ID'),
+
                 Tables\Columns\TextColumn::make('sop_name')
                     ->label('Nama SOP')
                     ->searchable()
-                    ->limit(30)
-                    ->tooltip(fn ($record) => $record->sop_name),
-                Tables\Columns\TextColumn::make('user_id')
-                    ->numeric()
-                    ->hidden()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('id_unit')
-                    ->hidden()
-                    // ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->limit(40)
+                    ->wrap()
+                    ->weight('medium')
+                    ->description(fn ($record) => $record->sk_number)
+                    ->tooltip(fn ($record) => "📄 {$record->sop_name}\n📋 SK: {$record->sk_number}"),
+
+                Tables\Columns\TextColumn::make('unit.unit_name')
+                    ->label('Unit Kerja')
+                    ->searchable()
+                    ->sortable()
+                    ->icon('heroicon-o-building-office-2')
+                    ->iconColor('gray')
+                    ->toggleable()
+                    ->limit(20)
+                    ->tooltip(fn ($record) => $record->unit?->unit_name),
+
                 Tables\Columns\TextColumn::make('type_sop')
-                    ->label('Jenis SOP')
+                    ->label('Tipe')
                     ->badge()
+                    ->alignCenter()
                     ->color(fn (string $state): string => match ($state) {
                         'AP' => 'success',
                         'NonAP' => 'info',
                         default => 'gray',
+                    })
+                    ->icon(fn (string $state): string => match ($state) {
+                        'AP' => 'heroicon-o-shield-check',
+                        'NonAP' => 'heroicon-o-document',
+                        default => 'heroicon-o-document',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'AP' => 'AP',
+                        'NonAP' => 'Non-AP',
+                        default => $state,
+                    })
+                    ->tooltip(fn (string $state): string => match ($state) {
+                        'AP' => 'Audit Prosedur',
+                        'NonAP' => 'Non Audit Prosedur',
+                        default => $state,
                     }),
-                Tables\Columns\TextColumn::make('file_path')
-                    ->searchable()
-                    ->hidden(),
-                Tables\Columns\TextColumn::make('approval_date')
-                    ->label('Tanggal Pengesahan')
-                    ->date('d M Y')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('start_date')
-                    ->label('Tanggal Berlaku')
-                    ->date('d M Y')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('expired')
-                    ->label('Tanggal Kadaluarsa')
-                    ->date('d M Y')
-                    ->sortable()
-                    ->color(fn ($record) => $record->expired < now() ? 'danger' : null),
+
                 Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
                     ->badge()
+                    ->alignCenter()
                     ->color(fn (string $state): string => match ($state) {
                         'Pending' => 'warning',
                         'In Review' => 'info',
@@ -457,71 +472,207 @@ class SopResource extends Resource
                         'Rejected' => 'heroicon-o-x-circle',
                         'Expired' => 'heroicon-o-exclamation-triangle',
                         default => 'heroicon-o-question-mark-circle',
-                    }),
-                Tables\Columns\TextColumn::make('days_left')
-                    ->label('Masa Berlaku')
-                    ->suffix(' hari')
-                    ->numeric()
-                    ->sortable()
-                    ->color(fn (int $state): string => match (true) {
-                        $state <= 30 => 'danger',
-                        $state <= 90 => 'warning',
-                        default => 'success',
-                    }),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                Tables\Filters\TrashedFilter::make(),
-                Tables\Filters\SelectFilter::make('status')
-                    ->options([
-                        'Pending' => 'Pending',
-                        'In Review' => 'In Review',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'Pending' => 'Menunggu',
+                        'In Review' => 'Direview',
                         'Approve' => 'Disetujui',
                         'Rejected' => 'Ditolak',
                         'Expired' => 'Kadaluarsa',
-                    ]),
+                        default => $state,
+                    }),
+
+                Tables\Columns\TextColumn::make('days_left')
+                    ->label('Masa Berlaku')
+                    ->alignCenter()
+                    ->sortable()
+                    ->formatStateUsing(function (int $state): string {
+                        if ($state <= 0) {
+                            return 'Kadaluarsa';
+                        } elseif ($state <= 30) {
+                            return "{$state} hari";
+                        } elseif ($state <= 90) {
+                            return round($state / 30) . ' bulan';
+                        } else {
+                            return round($state / 365, 1) . ' tahun';
+                        }
+                    })
+                    ->badge()
+                    ->color(fn (int $state): string => match (true) {
+                        $state <= 0 => 'danger',
+                        $state <= 30 => 'danger',
+                        $state <= 90 => 'warning',
+                        default => 'success',
+                    })
+                    ->icon(fn (int $state): string => match (true) {
+                        $state <= 0 => 'heroicon-o-x-circle',
+                        $state <= 30 => 'heroicon-o-exclamation-triangle',
+                        $state <= 90 => 'heroicon-o-clock',
+                        default => 'heroicon-o-check-circle',
+                    })
+                    ->tooltip(fn ($record) => "Berlaku: " . \Carbon\Carbon::parse($record->start_date)->format('d M Y') . 
+                        "\nBerakhir: " . \Carbon\Carbon::parse($record->expired)->format('d M Y')),
+
+                // === Kolom Tanggal (Toggleable) ===
+                Tables\Columns\TextColumn::make('approval_date')
+                    ->label('Tgl Pengesahan')
+                    ->date('d M Y')
+                    ->sortable()
+                    ->icon('heroicon-o-check-badge')
+                    ->iconColor('success')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('start_date')
+                    ->label('Tgl Berlaku')
+                    ->date('d M Y')
+                    ->sortable()
+                    ->icon('heroicon-o-play')
+                    ->iconColor('info')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('expired')
+                    ->label('Tgl Kadaluarsa')
+                    ->date('d M Y')
+                    ->sortable()
+                    ->icon('heroicon-o-exclamation-triangle')
+                    ->color(fn ($record) => $record->expired < now() ? 'danger' : 'warning')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                // === Kolom Pembuat (Toggleable) ===
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Dibuat Oleh')
+                    ->searchable()
+                    ->sortable()
+                    ->icon('heroicon-o-user')
+                    ->iconColor('gray')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                // === Kolom Hidden ===
+                Tables\Columns\TextColumn::make('sk_number')
+                    ->label('Nomor SK')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Dibuat')
+                    ->dateTime('d M Y, H:i')
+                    ->sortable()
+                    ->since()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Diperbarui')
+                    ->dateTime('d M Y, H:i')
+                    ->sortable()
+                    ->since()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                Tables\Filters\TrashedFilter::make()
+                    ->label('Data Terhapus'),
+
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Status')
+                    ->options([
+                        'Pending' => '⏳ Pending',
+                        'In Review' => '🔍 In Review',
+                        'Approve' => '✅ Disetujui',
+                        'Rejected' => '❌ Ditolak',
+                        'Expired' => '⚠️ Kadaluarsa',
+                    ])
+                    ->placeholder('Semua Status')
+                    ->indicator('Status'),
+
                 Tables\Filters\SelectFilter::make('type_sop')
                     ->label('Tipe SOP')
                     ->options([
-                        'AP' => 'AP',
-                        'NonAP' => 'Non AP',
-                    ]),
+                        'AP' => '🛡️ AP (Audit Prosedur)',
+                        'NonAP' => '📄 Non AP',
+                    ])
+                    ->placeholder('Semua Tipe')
+                    ->indicator('Tipe'),
+
+                Tables\Filters\SelectFilter::make('id_unit')
+                    ->label('Unit Kerja')
+                    ->relationship('unit', 'unit_name')
+                    ->searchable()
+                    ->preload()
+                    ->placeholder('Semua Unit')
+                    ->indicator('Unit'),
+
+                Tables\Filters\Filter::make('expiring_soon')
+                    ->label('Segera Kadaluarsa')
+                    ->query(fn (Builder $query): Builder => $query->where('days_left', '<=', 90)->where('days_left', '>', 0))
+                    ->toggle()
+                    ->indicator('Segera Kadaluarsa'),
+
+                Tables\Filters\Filter::make('already_expired')
+                    ->label('Sudah Kadaluarsa')
+                    ->query(fn (Builder $query): Builder => $query->where('days_left', '<=', 0))
+                    ->toggle()
+                    ->indicator('Kadaluarsa'),
             ])
+            ->filtersFormColumns(3)
             ->actions([
-                Tables\Actions\ViewAction::make()
-                    ->icon('heroicon-o-eye'),
-                Tables\Actions\EditAction::make()
-                    ->icon('heroicon-o-pencil'),
-                Tables\Actions\Action::make('review')
-                ->label('Review')
-                ->requiresConfirmation()
-                ->visible(fn (Sop $record) => auth()->user()->hasRole('Verifikator') && $record->status === 'Pending')
-                ->icon('heroicon-o-pencil-square')
-                ->color('warning')
-                ->modalHeading('Konfirmasi Review')
-                ->modalDescription('Lanjutkan ke halaman review?')
-                ->modalSubmitActionLabel('Ya, Lanjut')
-                ->action(function (Sop $record) {
-                    $record->update(['status' => 'In Review']);
-                    return redirect(static::getUrl('view', ['record' => $record]));
-                })
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make()
+                        ->icon('heroicon-o-eye')
+                        ->color('info')
+                        ->tooltip('Lihat Detail SOP'),
+                    Tables\Actions\EditAction::make()
+                        ->icon('heroicon-o-pencil')
+                        ->color('warning')
+                        ->tooltip('Edit SOP'),
+                    Tables\Actions\Action::make('review')
+                        ->label('Mulai Review')
+                        ->requiresConfirmation()
+                        ->visible(fn (Sop $record) => auth()->user()->hasRole('Verifikator') && $record->status === 'Pending')
+                        ->icon('heroicon-o-clipboard-document-check')
+                        ->color('success')
+                        ->modalIcon('heroicon-o-clipboard-document-check')
+                        ->modalHeading('Konfirmasi Review SOP')
+                        ->modalDescription(fn (Sop $record) => "Anda akan memulai review untuk:\n\n📄 {$record->sop_name}\n📋 SK: {$record->sk_number}")
+                        ->modalSubmitActionLabel('Ya, Mulai Review')
+                        ->tooltip('Mulai proses review SOP ini')
+                        ->action(function (Sop $record) {
+                            $record->update(['status' => 'In Review']);
+                            return redirect(static::getUrl('view', ['record' => $record]));
+                        }),
+                    Tables\Actions\Action::make('download')
+                        ->label('Download PDF')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('gray')
+                        ->url(fn (Sop $record) => $record->file_path ? asset('storage/' . $record->file_path) : null)
+                        ->openUrlInNewTab()
+                        ->visible(fn (Sop $record) => !empty($record->file_path))
+                        ->tooltip('Download dokumen PDF'),
+                ])
+                ->icon('heroicon-o-ellipsis-vertical')
+                ->tooltip('Aksi')
+                ->color('gray'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->icon('heroicon-o-trash'),
+                    Tables\Actions\ForceDeleteBulkAction::make()
+                        ->icon('heroicon-o-trash'),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->icon('heroicon-o-arrow-path'),
                 ]),
             ])
             ->striped()
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            ->recordUrl(fn (Sop $record): string => static::getUrl('view', ['record' => $record]))
+            ->poll('60s')
+            ->emptyStateIcon('heroicon-o-document-text')
+            ->emptyStateHeading('Belum Ada Dokumen SOP')
+            ->emptyStateDescription('Mulai dengan membuat dokumen SOP baru.')
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make()
+                    ->label('Buat SOP Baru')
+                    ->icon('heroicon-o-plus'),
+            ]);
     }
 
     public static function getRelations(): array
