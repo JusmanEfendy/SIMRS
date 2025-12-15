@@ -33,11 +33,12 @@ class UserResource extends Resource
                     ->maxLength(255),
                 Forms\Components\DateTimePicker::make('email_verified_at'),
                 Forms\Components\TextInput::make('password')
-                    ->visibleOn('create') // hanya tampil saat membuat data baru
+                    ->visibleOn('create')
+                    ->revealable()
                     ->password()
                     ->required()
                     ->maxLength(255),
-                Select::make('roles')->multiple()->relationship('roles', 'name')->preload()
+                Select::make('roles')->relationship('roles', 'name')->preload()
             ]);
     }
 
@@ -52,6 +53,7 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('roles.name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email_verified_at')
+                    ->hidden()
                     ->dateTime()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')

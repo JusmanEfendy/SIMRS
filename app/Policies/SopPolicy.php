@@ -32,7 +32,7 @@ class SopPolicy
     public function create(User $user): bool
     {
         // return true;
-        return auth()->user()->hasRole('Unit');
+        return auth()->user()->hasRole('Verifikator');
     }
 
     /**
@@ -40,7 +40,7 @@ class SopPolicy
      */
     public function update(User $user, Sop $sop): bool
     {
-        return auth()->user()->hasRole('Unit');
+        return auth()->user()->hasRole('Verifikator');
     }
 
     /**
@@ -49,7 +49,7 @@ class SopPolicy
     public function delete(User $user, Sop $sop): bool
     {
         // return true;
-         return auth()->user()->hasRole('Unit');
+         return auth()->user()->hasRole('Verifikator');
     }
 
     /**
@@ -58,7 +58,7 @@ class SopPolicy
     public function restore(User $user, Sop $sop): bool
     {
         // return true;
-         return auth()->user()->hasRole('Unit');
+         return auth()->user()->hasRole('Verifikator');
     }
 
     /**
@@ -67,6 +67,6 @@ class SopPolicy
     public function forceDelete(User $user, Sop $sop): bool
     {
         // return true;
-         return auth()->user()->hasRole('Unit');
+         return auth()->user()->hasRole('Verifikator');
     }
 }

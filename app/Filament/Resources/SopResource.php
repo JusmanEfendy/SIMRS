@@ -23,11 +23,11 @@ class SopResource extends Resource
     protected static ?string $model = Sop::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
-    
+
     protected static ?string $navigationLabel = 'Dokumen SOP';
-    
+
     protected static ?string $modelLabel = 'SOP';
-    
+
     protected static ?string $pluralModelLabel = 'Dokumen SOP';
 
     public static function form(Form $form): Form
@@ -240,11 +240,12 @@ class SopResource extends Resource
                                     ->size(Components\TextEntry\TextEntrySize::Large)
                                     ->weight(FontWeight::Bold)
                                     ->columnSpanFull(),
-                                Components\TextEntry::make('id_sop')
-                                    ->label('')
-                                    ->badge()
-                                    ->color('gray')
-                                    ->icon('heroicon-o-identification'),
+                                Components\TextEntry::make('unit.unit_name')
+                                    ->label('Unit Kerja')
+                                    ->icon('heroicon-o-building-office'),
+                                Components\TextEntry::make('unit.directorate.dir_name')
+                                    ->label('Direktorat')
+                                    ->icon('heroicon-o-building-office'),
                             ]),
                             Components\Group::make([
                                 Components\TextEntry::make('status')
@@ -510,7 +511,7 @@ class SopResource extends Resource
                         $state <= 90 => 'heroicon-o-clock',
                         default => 'heroicon-o-check-circle',
                     })
-                    ->tooltip(fn ($record) => "Berlaku: " . \Carbon\Carbon::parse($record->start_date)->format('d M Y') . 
+                    ->tooltip(fn ($record) => "Berlaku: " . \Carbon\Carbon::parse($record->start_date)->format('d M Y') .
                         "\nBerakhir: " . \Carbon\Carbon::parse($record->expired)->format('d M Y')),
 
                 // === Kolom Tanggal (Toggleable) ===
