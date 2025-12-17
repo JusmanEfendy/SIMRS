@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Testing\Fluent\Concerns\Has;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -24,6 +23,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'id_unit',
     ];
 
     /**
@@ -47,5 +47,13 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the unit that this user belongs to.
+     */
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class, 'id_unit', 'id_unit');
     }
 }

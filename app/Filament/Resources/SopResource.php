@@ -104,7 +104,7 @@ class SopResource extends Resource
                             Forms\Components\Hidden::make('user_id')
                                 ->default(fn () => auth()->id()),
                             Forms\Components\Hidden::make('status')
-                                ->default('Pending'),
+                                ->default('Aktif'),
                         ]),
 
                     // ========== STEP 2: Dokumen & Deskripsi ==========
@@ -212,7 +212,7 @@ class SopResource extends Resource
                                 ->schema([
                                     Forms\Components\Placeholder::make('info')
                                         ->label('')
-                                        ->content('Setelah menyimpan, dokumen SOP akan berstatus "Pending" dan menunggu proses review dari Verifikator.')
+                                        ->content('Setelah menyimpan, dokumen SOP akan berstatus "Aktif" dan dapat dilihat oleh Unit terkait.')
                                         ->columnSpanFull(),
                                 ]),
 
@@ -253,19 +253,13 @@ class SopResource extends Resource
                                     ->badge()
                                     ->size(Components\TextEntry\TextEntrySize::Large)
                                     ->color(fn (string $state): string => match ($state) {
-                                        'Pending' => 'warning',
-                                        'In Review' => 'info',
-                                        'Approve' => 'success',
-                                        'Rejected' => 'danger',
-                                        'Expired' => 'gray',
+                                        'Aktif' => 'success',
+                                        'Kadaluarsa' => 'danger',
                                         default => 'secondary',
                                     })
                                     ->icon(fn (string $state): string => match ($state) {
-                                        'Pending' => 'heroicon-o-clock',
-                                        'In Review' => 'heroicon-o-magnifying-glass',
-                                        'Approve' => 'heroicon-o-check-circle',
-                                        'Rejected' => 'heroicon-o-x-circle',
-                                        'Expired' => 'heroicon-o-exclamation-triangle',
+                                        'Aktif' => 'heroicon-o-check-circle',
+                                        'Kadaluarsa' => 'heroicon-o-exclamation-triangle',
                                         default => 'heroicon-o-question-mark-circle',
                                     }),
                             ])->grow(false),
@@ -459,27 +453,18 @@ class SopResource extends Resource
                     ->badge()
                     ->alignCenter()
                     ->color(fn (string $state): string => match ($state) {
-                        'Pending' => 'warning',
-                        'In Review' => 'info',
-                        'Approve' => 'success',
-                        'Rejected' => 'danger',
-                        'Expired' => 'gray',
+                        'Aktif' => 'success',
+                        'Kadaluarsa' => 'danger',
                         default => 'secondary',
                     })
                     ->icon(fn (string $state): string => match ($state) {
-                        'Pending' => 'heroicon-o-clock',
-                        'In Review' => 'heroicon-o-magnifying-glass',
-                        'Approve' => 'heroicon-o-check-circle',
-                        'Rejected' => 'heroicon-o-x-circle',
-                        'Expired' => 'heroicon-o-exclamation-triangle',
+                        'Aktif' => 'heroicon-o-check-circle',
+                        'Kadaluarsa' => 'heroicon-o-exclamation-triangle',
                         default => 'heroicon-o-question-mark-circle',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'Pending' => 'Menunggu',
-                        'In Review' => 'Direview',
-                        'Approve' => 'Disetujui',
-                        'Rejected' => 'Ditolak',
-                        'Expired' => 'Kadaluarsa',
+                        'Aktif' => 'Aktif',
+                        'Kadaluarsa' => 'Kadaluarsa',
                         default => $state,
                     }),
 
@@ -575,11 +560,8 @@ class SopResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Status')
                     ->options([
-                        'Pending' => '⏳ Pending',
-                        'In Review' => '🔍 In Review',
-                        'Approve' => '✅ Disetujui',
-                        'Rejected' => '❌ Ditolak',
-                        'Expired' => '⚠️ Kadaluarsa',
+                        'Aktif' => '✅ Aktif',
+                        'Kadaluarsa' => '⚠️ Kadaluarsa',
                     ])
                     ->placeholder('Semua Status')
                     ->indicator('Status'),
@@ -624,20 +606,19 @@ class SopResource extends Resource
                         ->icon('heroicon-o-pencil')
                         ->color('warning')
                         ->tooltip('Edit SOP'),
-                    Tables\Actions\Action::make('review')
-                        ->label('Mulai Review')
+                    Tables\Actions\Action::make('set_expired')
+                        ->label('Set Kadaluarsa')
                         ->requiresConfirmation()
-                        ->visible(fn (Sop $record) => auth()->user()->hasRole('Verifikator') && $record->status === 'Pending')
-                        ->icon('heroicon-o-clipboard-document-check')
-                        ->color('success')
-                        ->modalIcon('heroicon-o-clipboard-document-check')
-                        ->modalHeading('Konfirmasi Review SOP')
-                        ->modalDescription(fn (Sop $record) => "Anda akan memulai review untuk:\n\n📄 {$record->sop_name}\n📋 SK: {$record->sk_number}")
-                        ->modalSubmitActionLabel('Ya, Mulai Review')
-                        ->tooltip('Mulai proses review SOP ini')
+                        ->visible(fn (Sop $record) => auth()->user()->hasRole('Verifikator') && $record->status === 'Aktif')
+                        ->icon('heroicon-o-exclamation-triangle')
+                        ->color('danger')
+                        ->modalIcon('heroicon-o-exclamation-triangle')
+                        ->modalHeading('Konfirmasi Kadaluarsa SOP')
+                        ->modalDescription(fn (Sop $record) => "Anda akan mengubah status menjadi Kadaluarsa untuk:\n\n📄 {$record->sop_name}\n📋 SK: {$record->sk_number}")
+                        ->modalSubmitActionLabel('Ya, Set Kadaluarsa')
+                        ->tooltip('Set SOP ini sebagai kadaluarsa')
                         ->action(function (Sop $record) {
-                            $record->update(['status' => 'In Review']);
-                            return redirect(static::getUrl('view', ['record' => $record]));
+                            $record->update(['status' => 'Kadaluarsa']);
                         }),
                     Tables\Actions\Action::make('download')
                         ->label('Download PDF')
@@ -695,10 +676,27 @@ class SopResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+        
+        // Unit hanya bisa melihat SOP dengan status Aktif dan yang terkait dengan unit mereka
+        if (auth()->check() && auth()->user()->hasRole('Unit')) {
+            $userIdUnit = auth()->user()->id_unit;
+            
+            $query->where('status', 'Aktif');
+            
+            // Filter by user's id_unit
+            if ($userIdUnit) {
+                $query->where('id_unit', $userIdUnit);
+            } else {
+                // If user has no associated unit, show nothing
+                $query->whereRaw('1 = 0');
+            }
+        }
+        
+        return $query;
     }
 }
 

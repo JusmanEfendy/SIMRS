@@ -14,7 +14,6 @@ class SopPolicy
     public function viewAny(User $user): bool
     {
         return $user->hasAnyRole(['Unit', 'Verifikator']);
-        // return true;
     }
 
     /**
@@ -22,8 +21,19 @@ class SopPolicy
      */
     public function view(User $user, Sop $sop): bool
     {
-        // return true;
-        return $user->hasAnyRole(['Unit', 'Verifikator']);
+        // Verifikator can view all SOPs
+        if ($user->hasRole('Verifikator')) {
+            return true;
+        }
+        
+        // Unit can only view SOPs with status 'Aktif' that belong to their unit
+        if ($user->hasRole('Unit')) {
+            return $sop->status === 'Aktif' 
+                && $user->id_unit 
+                && $sop->id_unit === $user->id_unit;
+        }
+        
+        return false;
     }
 
     /**
@@ -31,8 +41,7 @@ class SopPolicy
      */
     public function create(User $user): bool
     {
-        // return true;
-        return auth()->user()->hasRole('Verifikator');
+        return $user->hasRole('Verifikator');
     }
 
     /**
@@ -40,7 +49,7 @@ class SopPolicy
      */
     public function update(User $user, Sop $sop): bool
     {
-        return auth()->user()->hasRole('Verifikator');
+        return $user->hasRole('Verifikator');
     }
 
     /**
@@ -48,8 +57,7 @@ class SopPolicy
      */
     public function delete(User $user, Sop $sop): bool
     {
-        // return true;
-         return auth()->user()->hasRole('Verifikator');
+        return $user->hasRole('Verifikator');
     }
 
     /**
@@ -57,8 +65,7 @@ class SopPolicy
      */
     public function restore(User $user, Sop $sop): bool
     {
-        // return true;
-         return auth()->user()->hasRole('Verifikator');
+        return $user->hasRole('Verifikator');
     }
 
     /**
@@ -66,7 +73,6 @@ class SopPolicy
      */
     public function forceDelete(User $user, Sop $sop): bool
     {
-        // return true;
-         return auth()->user()->hasRole('Verifikator');
+        return $user->hasRole('Verifikator');
     }
 }

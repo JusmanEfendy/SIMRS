@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\UserResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\UserResource\RelationManagers;
+use Illuminate\Validation\Rules\Password;
 
 class UserResource extends Resource
 {
@@ -26,20 +27,47 @@ class UserResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(100),
                 Forms\Components\TextInput::make('email')
                     ->email()
                     ->required()
-                    ->maxLength(255),
-                Forms\Components\DateTimePicker::make('email_verified_at'),
+                    ->maxLength(100),
+                Forms\Components\DateTimePicker::make('email_verified_at')->hidden(),
+                Select::make('id_unit')
+                    ->label('Unit Kerja')
+                    ->relationship('unit', 'unit_name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
                 Forms\Components\TextInput::make('password')
                     ->visibleOn('create')
                     ->revealable()
                     ->password()
                     ->required()
-                    ->maxLength(255),
-                Select::make('roles')->relationship('roles', 'name')->preload()
-            ]);
+                    ->maxLength(50)
+                    ->rule(
+                        Password::min(8)
+                        ->letters()
+                        ->mixedCase()
+                    )
+                    ->validationMessages([
+                        'min' => 'Password minimal 8 karakter.',
+                        'regex' => 'Password harus mengandung huruf besar, dan huruf kecil.',
+                    ])
+                    ->confirmed(),
+                Forms\Components\Select::make('role')
+                    ->label('Role')
+                    ->options(\Spatie\Permission\Models\Role::pluck('name', 'id'))
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->afterStateHydrated(function (Forms\Components\Select $component, $record) {
+                        if ($record) {
+                            $component->state($record->roles->first()?->id);
+                        }
+                    })
+                    ->dehydrated(false),
+                ]);
     }
 
     public static function table(Table $table): Table

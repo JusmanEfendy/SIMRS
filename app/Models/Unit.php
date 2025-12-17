@@ -13,9 +13,14 @@ class Unit extends Model
         return $this->belongsTo(Directorate::class, 'dir_id');
     }
 
-    public function sops()
+    public function user()
     {
-        return $this->hasMany(Sop::class, 'unit_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function sops()
+    {
+        // Foreign key is 'id_unit' on sops table, local key is 'id_unit' on units table
+        return $this->hasMany(Sop::class, 'id_unit', 'id_unit');
+    }
 }
