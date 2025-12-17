@@ -61,12 +61,25 @@ class UserResource extends Resource
                     ->searchable()
                     ->preload()
                     ->required()
+                    ->live()
                     ->afterStateHydrated(function (Forms\Components\Select $component, $record) {
                         if ($record) {
                             $component->state($record->roles->first()?->id);
                         }
                     })
                     ->dehydrated(false),
+                Select::make('dir_id')
+                    ->label('Direktorat yang Dikelola')
+                    ->relationship('managedDirectorate', 'dir_name')
+                    ->searchable()
+                    ->preload()
+                    ->helperText('Pilih direktorat yang akan dikelola oleh user dengan role Direksi')
+                    ->visible(function (callable $get) {
+                        $roleId = $get('role');
+                        if (!$roleId) return false;
+                        $role = \Spatie\Permission\Models\Role::find($roleId);
+                        return $role && in_array($role->name, ['Direksi', 'Direktorat']);
+                    }),
                 ]);
     }
 

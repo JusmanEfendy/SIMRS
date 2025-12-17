@@ -29,6 +29,8 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
+            ->brandLogo(asset('images/logo-kemenkes.png'))
+            ->brandLogoHeight('3rem')
             ->path('admin')
             ->login()
             ->colors([

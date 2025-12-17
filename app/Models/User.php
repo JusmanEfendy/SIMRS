@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'id_unit',
+        'dir_id',
     ];
 
     /**
@@ -55,5 +56,14 @@ class User extends Authenticatable
     public function unit()
     {
         return $this->belongsTo(Unit::class, 'id_unit', 'id_unit');
+    }
+
+    /**
+     * Get the directorate that this user manages (for Direksi/Direktorat role).
+     * Uses dir_id column in users table.
+     */
+    public function managedDirectorate()
+    {
+        return $this->belongsTo(Directorate::class, 'dir_id');
     }
 }

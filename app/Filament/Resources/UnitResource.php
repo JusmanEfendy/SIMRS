@@ -111,4 +111,25 @@ class UnitResource extends Resource
             'edit' => Pages\EditUnit::route('/{record}/edit'),
         ];
     }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        
+        // Filter untuk role Direksi/Direktorat - tampilkan unit yang terhubung dengan direktorat mereka
+        if (auth()->check() && (auth()->user()->hasRole('Direksi') || auth()->user()->hasRole('Direktorat'))) {
+            // Ambil dir_id dari user yang sedang login
+            $userDirId = auth()->user()->dir_id;
+            
+            if ($userDirId) {
+                // Filter unit berdasarkan dir_id yang sesuai dengan user's dir_id
+                $query->where('dir_id', $userDirId);
+            } else {
+                // Jika user tidak memiliki dir_id, tampilkan kosong
+                $query->whereRaw('1 = 0');
+            }
+        }
+        
+        return $query;
+    }
 }
