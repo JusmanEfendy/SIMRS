@@ -30,6 +30,11 @@ class SopResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Dokumen SOP';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasAnyRole(['Admin', 'Verifikator', 'Unit']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -618,7 +623,10 @@ class SopResource extends Resource
                         ->modalSubmitActionLabel('Ya, Set Kadaluarsa')
                         ->tooltip('Set SOP ini sebagai kadaluarsa')
                         ->action(function (Sop $record) {
-                            $record->update(['status' => 'Kadaluarsa']);
+                            $record->update([
+                                'status' => 'Kadaluarsa',
+                                'days_left' => 0,
+                            ]);
                         }),
                     Tables\Actions\Action::make('download')
                         ->label('Download PDF')
@@ -680,13 +688,13 @@ class SopResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
-        
+
         // Unit hanya bisa melihat SOP dengan status Aktif dan yang terkait dengan unit mereka
         if (auth()->check() && auth()->user()->hasRole('Unit')) {
             $userIdUnit = auth()->user()->id_unit;
-            
+
             $query->where('status', 'Aktif');
-            
+
             // Filter by user's id_unit
             if ($userIdUnit) {
                 $query->where('id_unit', $userIdUnit);
@@ -695,7 +703,7 @@ class SopResource extends Resource
                 $query->whereRaw('1 = 0');
             }
         }
-        
+
         return $query;
     }
 }

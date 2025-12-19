@@ -21,6 +21,11 @@ class UserResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('Admin');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -53,8 +58,7 @@ class UserResource extends Resource
                     ->validationMessages([
                         'min' => 'Password minimal 8 karakter.',
                         'regex' => 'Password harus mengandung huruf besar, dan huruf kecil.',
-                    ])
-                    ->confirmed(),
+                    ]),
                 Forms\Components\Select::make('role')
                     ->label('Role')
                     ->options(\Spatie\Permission\Models\Role::pluck('name', 'id'))

@@ -28,6 +28,11 @@ class SopHistoryResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasAnyRole(['Direksi', 'Direktorat']);
+    }
+
     public static function table(Table $table): Table
     {
         return $table

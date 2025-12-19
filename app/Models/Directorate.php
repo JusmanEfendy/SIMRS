@@ -21,4 +21,12 @@ class Directorate extends Model
     {
         return $this->hasMany(Unit::class, 'dir_id');
     }
+
+    /**
+     * Get all users who manage this directorate (Direksi/Direktorat role).
+     */
+    public function managers()
+    {
+        return $this->hasMany(User::class, 'dir_id');
+    }
 }

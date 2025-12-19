@@ -27,12 +27,16 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
             ->id('admin')
             ->brandLogo(asset('images/logo-kemenkes.png'))
             ->brandLogoHeight('3rem')
             ->path('admin')
+            ->authGuard('web')
             ->login()
+            ->authMiddleware([
+                Authenticate::class,
+                'role:Admin',
+            ])
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -57,11 +61,11 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->authMiddleware([
-                Authenticate::class,
-            ])
+
             ->plugin(FilamentSpatieRolesPermissionsPlugin::make())
-            ->databaseNotifications()
+            ->databaseNotifications(
+                condition: fn () => auth()->check() && !auth()->user()->hasRole('Admin')
+            )
             ->databaseNotificationsPolling('5s')
             ->renderHook(
                 PanelsRenderHook::HEAD_END,

@@ -23,4 +23,12 @@ class Unit extends Model
         // Foreign key is 'id_unit' on sops table, local key is 'id_unit' on units table
         return $this->hasMany(Sop::class, 'id_unit', 'id_unit');
     }
+
+    /**
+     * Get all users belonging to this unit.
+     */
+    public function users()
+    {
+        return $this->hasMany(User::class, 'id_unit', 'id_unit');
+    }
 }
