@@ -28,6 +28,8 @@ class VerifikatorPanelProvider extends PanelProvider
             ->brandLogo(asset('images/logo-kemenkes.png'))
             ->brandLogoHeight('3rem')
             ->login()
+            ->passwordReset()
+            ->profile(\App\Filament\Pages\Auth\EditProfile::class)
             ->authGuard('web')
             ->authMiddleware([
                 Authenticate::class,

@@ -26,6 +26,8 @@ class UnitPanelProvider extends PanelProvider
             ->id('unit')
             ->path('unit')
             ->login()
+            ->passwordReset()
+            ->profile(\App\Filament\Pages\Auth\EditProfile::class)
             ->authGuard('web')
             ->brandLogo(asset('images/logo-kemenkes.png'))
             ->brandLogoHeight('3rem')

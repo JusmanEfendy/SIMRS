@@ -42,8 +42,7 @@ class UserResource extends Resource
                     ->label('Unit Kerja')
                     ->relationship('unit', 'unit_name')
                     ->searchable()
-                    ->preload()
-                    ->required(),
+                    ->preload(),
                 Forms\Components\TextInput::make('password')
                     ->visibleOn('create')
                     ->revealable()

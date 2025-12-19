@@ -33,6 +33,8 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->authGuard('web')
             ->login()
+            ->passwordReset()
+            ->profile(\App\Filament\Pages\Auth\EditProfile::class)
             ->authMiddleware([
                 Authenticate::class,
                 'role:Admin',

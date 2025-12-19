@@ -42,6 +42,15 @@ class Sop extends Model
     }
 
     /**
+     * Get collaborating units for this SOP (for AP type).
+     */
+    public function collabUnits()
+    {
+        return $this->belongsToMany(Unit::class, 'collabs', 'id_sop', 'id_unit', 'id_sop', 'id_unit')
+            ->withTimestamps();
+    }
+
+    /**
      * Log a history entry for this SOP.
      */
     public function logHistory(string $action, string $description, ?array $oldValues = null, ?array $newValues = null, ?array $changedFields = null): SopHistory

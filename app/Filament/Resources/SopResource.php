@@ -91,7 +91,8 @@ class SopResource extends Resource
                                                 ->searchable()
                                                 ->preload()
                                                 ->required()
-                                                ->prefixIcon('heroicon-o-building-office-2'),
+                                                ->prefixIcon('heroicon-o-building-office-2')
+                                                ->live(),
                                             Forms\Components\Select::make('type_sop')
                                                 ->label('Tipe SOP')
                                                 ->placeholder('Pilih tipe SOP...')
@@ -101,8 +102,27 @@ class SopResource extends Resource
                                                 ])
                                                 ->required()
                                                 ->native(false)
-                                                ->prefixIcon('heroicon-o-tag'),
+                                                ->prefixIcon('heroicon-o-tag')
+                                                ->live(),
                                         ]),
+
+                                    // Unit Terkait - hanya muncul jika tipe AP
+                                    Forms\Components\Select::make('collabUnits')
+                                        ->label('Unit Terkait (Kolaborasi)')
+                                        ->placeholder('Pilih unit yang terkait...')
+                                        ->relationship('collabUnits', 'unit_name')
+                                        ->multiple()
+                                        ->searchable()
+                                        ->preload()
+                                        ->prefixIcon('heroicon-o-user-group')
+                                        ->helperText('Pilih unit-unit lain yang terkait dengan SOP AP ini')
+                                        ->visible(fn (callable $get) => $get('type_sop') === 'AP')
+                                        ->options(function (callable $get) {
+                                            $selectedUnitId = $get('id_unit');
+                                            return \App\Models\Unit::query()
+                                                ->when($selectedUnitId, fn ($query) => $query->where('id_unit', '!=', $selectedUnitId))
+                                                ->pluck('unit_name', 'id_unit');
+                                        }),
                                 ]),
 
                             // Hidden fields
@@ -211,15 +231,15 @@ class SopResource extends Resource
                                 ]),
 
                             // Ringkasan sebelum submit
-                            Forms\Components\Section::make('✅ Konfirmasi')
-                                ->description('Pastikan semua data sudah benar sebelum menyimpan')
-                                ->icon('heroicon-o-check-circle')
-                                ->schema([
-                                    Forms\Components\Placeholder::make('info')
-                                        ->label('')
-                                        ->content('Setelah menyimpan, dokumen SOP akan berstatus "Aktif" dan dapat dilihat oleh Unit terkait.')
-                                        ->columnSpanFull(),
-                                ]),
+                            // Forms\Components\Section::make('✅ Konfirmasi')
+                            //     ->description('Pastikan semua data sudah benar sebelum menyimpan')
+                            //     ->icon('heroicon-o-check-circle')
+                            //     ->schema([
+                            //         Forms\Components\Placeholder::make('info')
+                            //             ->label('')
+                            //             ->content('Setelah menyimpan, dokumen SOP akan berstatus "Aktif" dan dapat dilihat oleh Unit terkait.')
+                            //             ->columnSpanFull(),
+                            //     ]),
 
                             // Hidden feedback field
                             Forms\Components\Hidden::make('feedback'),
