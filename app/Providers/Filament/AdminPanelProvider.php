@@ -21,6 +21,8 @@ use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Althinect\FilamentSpatieRolesPermissions\FilamentSpatieRolesPermissionsPlugin;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Contracts\View\View;
+use Filament\Facades\Filament;
+use Filament\Navigation\UserMenuItem;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -35,6 +37,12 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->passwordReset()
             ->profile(\App\Filament\Pages\Auth\EditProfile::class)
+            ->userMenuItems([
+                UserMenuItem::make('profile')
+                    ->label(fn () => auth()->user()->name)
+                    // ->url(fn () => Filament::getProfileUrl())
+                    ->icon('heroicon-o-user-circle'),
+                ])
             ->authMiddleware([
                 Authenticate::class,
                 'role:Admin',

@@ -6,6 +6,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\UserMenuItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -30,6 +31,12 @@ class VerifikatorPanelProvider extends PanelProvider
             ->login()
             ->passwordReset()
             ->profile(\App\Filament\Pages\Auth\EditProfile::class)
+            ->userMenuItems([
+                UserMenuItem::make('profile')
+                    ->label(fn () => auth()->user()->name)
+                    // ->url(fn () => Filament::getProfileUrl())
+                    ->icon('heroicon-o-user-circle'),
+                ])
             ->authGuard('web')
             ->authMiddleware([
                 Authenticate::class,
