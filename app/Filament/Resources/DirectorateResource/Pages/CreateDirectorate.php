@@ -9,4 +9,21 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateDirectorate extends CreateRecord
 {
     protected static string $resource = DirectorateResource::class;
+
+    protected function getCreateFormAction(): Actions\Action
+    {
+        return parent::getCreateFormAction()
+            ->label('Simpan');
+    }
+
+    protected function getCreateAnotherFormAction(): Actions\Action
+    {
+        return parent::getCreateAnotherFormAction()
+            ->hidden();
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

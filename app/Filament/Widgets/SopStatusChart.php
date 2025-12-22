@@ -2,19 +2,20 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\Directorate;
 use App\Models\Sop;
 use App\Models\Unit;
 use Filament\Widgets\ChartWidget;
 
 class SopStatusChart extends ChartWidget
 {
-    protected static ?string $heading = '📈 Ringkasan Status SOP';
+    protected static ?string $heading = '📊 Statistik Unit & SOP per Direktorat';
 
-    protected static ?string $description = 'Perbandingan SOP Aktif vs Kadaluarsa di direktorat Anda';
+    protected static ?string $description = 'Perbandingan jumlah Unit dan SOP di setiap Direktorat';
 
     protected static ?int $sort = 2;
 
-    protected static ?string $maxHeight = '200px';
+    protected static ?string $maxHeight = '300px';
 
     protected int | string | array $columnSpan = 'full';
 
@@ -30,14 +31,25 @@ class SopStatusChart extends ChartWidget
 
     protected function getData(): array
     {
-        $user = auth()->user();
-        $dirId = $user->dir_id;
+        // Get all directorates with their unit and SOP counts
+        $directorates = Directorate::withCount('units')
+            ->get()
+            ->map(function ($directorate) {
+                $unitIds = Unit::where('dir_id', $directorate->id)->pluck('id_unit');
+                $sopCount = Sop::whereIn('id_unit', $unitIds)->count();
+                
+                return [
+                    'name' => $directorate->dir_name,
+                    'units_count' => $directorate->units_count,
+                    'sop_count' => $sopCount,
+                ];
+            });
 
-        if (!$dirId) {
+        if ($directorates->isEmpty()) {
             return [
                 'datasets' => [
                     [
-                        'label' => 'SOP Aktif',
+                        'label' => 'Jumlah Unit',
                         'data' => [0],
                         'backgroundColor' => 'rgba(156, 163, 175, 0.5)',
                     ],
@@ -46,49 +58,32 @@ class SopStatusChart extends ChartWidget
             ];
         }
 
-        // Get unit IDs under this directorate
-        $unitIds = Unit::where('dir_id', $dirId)->pluck('id_unit');
-
-        $activeSop = Sop::whereIn('id_unit', $unitIds)->where('status', 'Aktif')->count();
-        $expiredSop = Sop::whereIn('id_unit', $unitIds)->where('status', 'Kadaluarsa')->count();
-        $totalSop = $activeSop + $expiredSop;
+        $labels = $directorates->pluck('name')->toArray();
+        $unitCounts = $directorates->pluck('units_count')->toArray();
+        $sopCounts = $directorates->pluck('sop_count')->toArray();
 
         return [
             'datasets' => [
                 [
-                    'label' => "✅ Aktif ({$activeSop})",
-                    'data' => [$activeSop],
-                    'backgroundColor' => 'rgba(34, 197, 94, 0.85)',
-                    'borderColor' => 'rgba(34, 197, 94, 1)',
+                    'label' => '🏢 Jumlah Unit',
+                    'data' => $unitCounts,
+                    'backgroundColor' => 'rgba(59, 130, 246, 0.85)',
+                    'borderColor' => 'rgba(59, 130, 246, 1)',
                     'borderWidth' => 0,
-                    'borderRadius' => [
-                        'topLeft' => 8,
-                        'bottomLeft' => 8,
-                        'topRight' => $expiredSop === 0 ? 8 : 0,
-                        'bottomRight' => $expiredSop === 0 ? 8 : 0,
-                    ],
+                    'borderRadius' => 6,
                     'borderSkipped' => false,
-                    'barPercentage' => 0.6,
-                    'categoryPercentage' => 1,
                 ],
                 [
-                    'label' => "⚠️ Kadaluarsa ({$expiredSop})",
-                    'data' => [$expiredSop],
-                    'backgroundColor' => 'rgba(239, 68, 68, 0.85)',
-                    'borderColor' => 'rgba(239, 68, 68, 1)',
+                    'label' => '📄 Jumlah SOP',
+                    'data' => $sopCounts,
+                    'backgroundColor' => 'rgba(16, 185, 129, 0.85)',
+                    'borderColor' => 'rgba(16, 185, 129, 1)',
                     'borderWidth' => 0,
-                    'borderRadius' => [
-                        'topLeft' => $activeSop === 0 ? 8 : 0,
-                        'bottomLeft' => $activeSop === 0 ? 8 : 0,
-                        'topRight' => 8,
-                        'bottomRight' => 8,
-                    ],
+                    'borderRadius' => 6,
                     'borderSkipped' => false,
-                    'barPercentage' => 0.6,
-                    'categoryPercentage' => 1,
                 ],
             ],
-            'labels' => ["Total: {$totalSop} SOP"],
+            'labels' => $labels,
         ];
     }
 
@@ -100,7 +95,6 @@ class SopStatusChart extends ChartWidget
     protected function getOptions(): array
     {
         return [
-            'indexAxis' => 'y', // Horizontal bar chart
             'responsive' => true,
             'maintainAspectRatio' => false,
             'plugins' => [
@@ -133,7 +127,24 @@ class SopStatusChart extends ChartWidget
             ],
             'scales' => [
                 'x' => [
-                    'stacked' => true,
+                    'display' => true,
+                    'grid' => [
+                        'display' => false,
+                    ],
+                    'ticks' => [
+                        'font' => [
+                            'size' => 11,
+                            'weight' => '500',
+                        ],
+                        'color' => 'rgba(55, 65, 81, 0.9)',
+                        'maxRotation' => 45,
+                        'minRotation' => 0,
+                    ],
+                    'border' => [
+                        'display' => false,
+                    ],
+                ],
+                'y' => [
                     'display' => true,
                     'beginAtZero' => true,
                     'grid' => [
@@ -152,30 +163,12 @@ class SopStatusChart extends ChartWidget
                         'display' => false,
                     ],
                 ],
-                'y' => [
-                    'stacked' => true,
-                    'display' => true,
-                    'grid' => [
-                        'display' => false,
-                    ],
-                    'ticks' => [
-                        'font' => [
-                            'size' => 13,
-                            'weight' => '600',
-                        ],
-                        'color' => 'rgba(55, 65, 81, 0.9)',
-                        'padding' => 10,
-                    ],
-                    'border' => [
-                        'display' => false,
-                    ],
-                ],
             ],
             'layout' => [
                 'padding' => [
-                    'top' => 5,
+                    'top' => 10,
                     'right' => 20,
-                    'bottom' => 5,
+                    'bottom' => 10,
                     'left' => 10,
                 ],
             ],

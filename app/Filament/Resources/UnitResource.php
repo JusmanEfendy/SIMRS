@@ -29,18 +29,28 @@ class UnitResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('id_unit')
+                    ->label('ID Unit')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(50),
                 Forms\Components\TextInput::make('unit_name')
                     ->required()
+                    ->label('Nama Unit')
                     ->maxLength(100),
                 Forms\Components\TextInput::make('unit_head_name')
                     ->required()
+                    ->label('Kepala Unit')
                     ->maxLength(100),
                 Forms\Components\TextInput::make('unit_telp')
                     ->tel()
+                    ->label('Nomor Telepon')
+                    ->rules([
+                            'regex:/^(?:\+62|08)[0-9]{8,11}$/',
+                        ])
+                    ->validationMessages([
+                        'regex' => 'Nomor telepon harus diawali +62 atau 08 (contoh: +628123456789 atau 08123456789)',
+                    ])
                     ->required()
-                    ->maxLength(100),
+                    ->maxLength(20),
                 Forms\Components\Select::make('dir_id')
                     ->relationship('directorate', 'dir_name')
                     ->label('Direktorat')
@@ -90,8 +100,8 @@ class UnitResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -120,12 +130,12 @@ class UnitResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        
+
         // Filter untuk role Direksi/Direktorat - tampilkan unit yang terhubung dengan direktorat mereka
         if (auth()->check() && (auth()->user()->hasRole('Direksi') || auth()->user()->hasRole('Direktorat'))) {
             // Ambil dir_id dari user yang sedang login
             $userDirId = auth()->user()->dir_id;
-            
+
             if ($userDirId) {
                 // Filter unit berdasarkan dir_id yang sesuai dengan user's dir_id
                 $query->where('dir_id', $userDirId);
@@ -134,7 +144,7 @@ class UnitResource extends Resource
                 $query->whereRaw('1 = 0');
             }
         }
-        
+
         return $query;
     }
 }

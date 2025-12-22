@@ -38,11 +38,6 @@ class UserResource extends Resource
                     ->required()
                     ->maxLength(100),
                 Forms\Components\DateTimePicker::make('email_verified_at')->hidden(),
-                Select::make('id_unit')
-                    ->label('Unit Kerja')
-                    ->relationship('unit', 'unit_name')
-                    ->searchable()
-                    ->preload(),
                 Forms\Components\TextInput::make('password')
                     ->visibleOn('create')
                     ->revealable()
@@ -71,6 +66,17 @@ class UserResource extends Resource
                         }
                     })
                     ->dehydrated(false),
+                Select::make('id_unit')
+                    ->label('Unit Kerja')
+                    ->relationship('unit', 'unit_name')
+                    ->searchable()
+                    ->preload()
+                    ->visible(function (callable $get) {
+                        $roleId = $get('role');
+                        if (!$roleId) return false;
+                        $role = \Spatie\Permission\Models\Role::find($roleId);
+                        return $role && $role->name === 'Unit';
+                    }),
                 Select::make('dir_id')
                     ->label('Direktorat yang Dikelola')
                     ->relationship('managedDirectorate', 'dir_name')
@@ -113,12 +119,8 @@ class UserResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                // Tables\Actions\Action::make('review')
-                // ->label('Review')
-                // ->icon('heroicon-o-pencil')
-                // ->requiresConfirmation()
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

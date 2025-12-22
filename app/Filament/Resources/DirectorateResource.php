@@ -29,18 +29,28 @@ class DirectorateResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('dir_id')
+                    ->label('ID Direktorat')
                     ->required()
                     ->maxLength(50),
                 Forms\Components\TextInput::make('dir_name')
+                    ->label('Nama Direktorat')
                     ->required()
                     ->maxLength(100),
                 Forms\Components\TextInput::make('dir_head_name')
+                    ->label('Kepala Direksi')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(100),
                 Forms\Components\TextInput::make('dir_telp')
+                    ->label('Nomor Telepon')
+                    ->rules([
+                            'regex:/^(?:\+62|08)[0-9]{8,11}$/',
+                        ])
+                    ->validationMessages([
+                        'regex' => 'Nomor telepon harus diawali +62 atau 08 (contoh: +628123456789 atau 08123456789)',
+                    ])
                     ->tel()
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(20),
                 Forms\Components\Hidden::make('user_id')
                     ->default(auth()->id())
                     ->disabled(fn (string $context) => $context === 'edit'),
@@ -80,8 +90,8 @@ class DirectorateResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

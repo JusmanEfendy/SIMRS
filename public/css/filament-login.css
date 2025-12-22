@@ -1,0 +1,156 @@
+/* Login Page Background with Gradient Blur Orbs */
+.fi-simple-layout {
+    background: #111827 !important;
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Large gradient blur orb - Tosca (Top Left) */
+.fi-simple-layout::before {
+    content: '';
+    position: fixed;
+    top: -20%;
+    left: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, #2CB5B1 0%, #0d9488 40%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.8;
+    pointer-events: none;
+    z-index: 0;
+    animation: floatOrb1 12s ease-in-out infinite;
+}
+
+/* Large gradient blur orb - Purple (Bottom Right) */
+.fi-simple-layout::after {
+    content: '';
+    position: fixed;
+    bottom: -20%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, #d6a2f8 0%, #a855f7 40%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 0;
+    animation: floatOrb2 15s ease-in-out infinite;
+}
+
+/* Third orb - Blue (Center) */
+.fi-simple-main::before {
+    content: '';
+    position: fixed;
+    top: 30%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, #3b82f6 0%, #1d4ed8 40%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 0;
+    animation: floatOrb3 10s ease-in-out infinite;
+}
+
+/* Fourth orb - Pink (Top Right) */
+.fi-simple-main::after {
+    content: '';
+    position: fixed;
+    top: 10%;
+    right: 20%;
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, #ec4899 0%, #db2777 40%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 0;
+    animation: floatOrb4 14s ease-in-out infinite;
+}
+
+/* Animations for floating orbs */
+@keyframes floatOrb1 {
+
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    33% {
+        transform: translate(50px, 30px) scale(1.1);
+    }
+
+    66% {
+        transform: translate(-30px, 50px) scale(0.95);
+    }
+}
+
+@keyframes floatOrb2 {
+
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    33% {
+        transform: translate(-40px, -30px) scale(1.05);
+    }
+
+    66% {
+        transform: translate(30px, -40px) scale(0.9);
+    }
+}
+
+@keyframes floatOrb3 {
+
+    0%,
+    100% {
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateX(-50%) translateY(-40px) scale(1.1);
+    }
+}
+
+@keyframes floatOrb4 {
+
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    50% {
+        transform: translate(-20px, 30px) scale(1.15);
+    }
+}
+
+/* Ensure card container is above the orbs */
+.fi-simple-main-ctr {
+    position: relative;
+    z-index: 10;
+}
+
+/* Optional: Add subtle noise texture overlay */
+.fi-simple-layout>* {
+    position: relative;
+    z-index: 1;
+}
+
+/* Make card solid for better readability */
+.fi-simple-main-ctr .fi-simple-page {
+    background: rgba(255, 255, 255, 1) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Dark mode card adjustment */
+.dark .fi-simple-main-ctr .fi-simple-page {
+    background: rgba(31, 41, 55, 1) !important;
+}

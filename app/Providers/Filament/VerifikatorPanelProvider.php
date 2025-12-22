@@ -67,6 +67,10 @@ class VerifikatorPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->databaseNotifications()
-            ->databaseNotificationsPolling('5s');
+            ->databaseNotificationsPolling('5s')
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::HEAD_END,
+                fn (): \Illuminate\Contracts\View\View => view('filament.partials.login-styles')
+            );
     }
 }
