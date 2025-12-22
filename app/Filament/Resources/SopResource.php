@@ -247,7 +247,8 @@ class SopResource extends Resource
                 ])
                 ->skippable()
                 ->persistStepInQueryString()
-                ->columnSpanFull(),
+                ->columnSpanFull()
+                ->submitAction(view('filament.components.wizard-submit-action')),
             ]);
     }
 

@@ -149,8 +149,14 @@ class Sop extends Model
             }
         });
 
-        // Log when SOP is deleted
+        // Log when SOP is deleted (only for soft delete, not force delete)
         static::deleted(function ($model) {
+            // Skip logging if this is a force delete operation
+            // isForceDeleting() returns true when forceDelete() is called
+            if ($model->isForceDeleting()) {
+                return;
+            }
+            
             $model->logHistory(
                 'deleted',
                 "SOP \"{$model->sop_name}\" telah dihapus",

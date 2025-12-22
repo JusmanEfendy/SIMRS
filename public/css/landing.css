@@ -1,0 +1,174 @@
+* {
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom Animations */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+.float-animation {
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(44, 181, 177, 0.3); }
+    50% { box-shadow: 0 0 40px rgba(44, 181, 177, 0.6); }
+}
+
+.pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes countUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.count-animation {
+    animation: countUp 0.8s ease-out;
+}
+
+/* Light Mode Gradients */
+.gradient-bg {
+    background: linear-gradient(135deg, #f0fdfc 0%, #ffffff 50%, #f0fdfc 100%);
+}
+
+.gradient-tosca {
+    background: linear-gradient(135deg, #2CB5B1 0%, #0d9488 100%);
+}
+
+/* Dark Mode Gradients */
+.dark .gradient-bg {
+    background: linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%);
+}
+
+.dark .gradient-tosca {
+    background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+}
+
+/* Card Hover Effects */
+.card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.dark .card-hover:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Button Ripple Effect */
+.btn-ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-ripple:hover::after {
+    width: 300px;
+    height: 300px;
+}
+
+/* Navbar Blur - Light Mode */
+.navbar-blur {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+/* Navbar Blur - Dark Mode */
+.navbar-blur-dark {
+    backdrop-filter: blur(10px);
+    background: rgba(17, 24, 39, 0.9);
+}
+
+.dark .navbar-blur {
+    backdrop-filter: blur(10px);
+    background: rgba(17, 24, 39, 0.9);
+}
+
+/* Mobile Menu */
+.mobile-menu {
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Dark Mode Pulse Glow */
+.dark .pulse-glow {
+    animation: pulse-glow-dark 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow-dark {
+    0%, 100% { box-shadow: 0 0 20px rgba(20, 184, 166, 0.4); }
+    50% { box-shadow: 0 0 40px rgba(20, 184, 166, 0.7); }
+}
+
+/* Section Backgrounds for Dark Mode */
+.dark .bg-gray-50 {
+    background-color: #111827;
+}
+
+.dark .bg-white {
+    background-color: #1f2937;
+}
+
+/* Text Colors for Dark Mode - Applied via Tailwind classes */
+
+/* Border Colors for Dark Mode */
+.dark .border-gray-100 {
+    border-color: #374151;
+}
+
+.dark .border-gray-200 {
+    border-color: #374151;
+}
+
+/* Feature Card Glow Effect */
+.feature-card {
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.dark .feature-card:hover {
+    box-shadow: 0 10px 30px rgba(44, 181, 177, 0.2);
+}
+
+/* Smooth Transitions */
+*, *::before, *::after {
+    transition-property: background-color, border-color;
+    transition-duration: 200ms;
+    transition-timing-function: ease-in-out;
+}
+
+/* Exclude already transitioned elements */
+.btn-ripple::after,
+.float-animation,
+.pulse-glow {
+    transition-property: none;
+}

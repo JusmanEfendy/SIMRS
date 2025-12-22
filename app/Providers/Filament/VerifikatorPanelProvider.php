@@ -30,6 +30,9 @@ class VerifikatorPanelProvider extends PanelProvider
             ->brandLogoHeight('3rem')
             ->login()
             ->passwordReset()
+            ->colors([
+                'primary' => Color::hex('#14b8a6'),
+            ])
             ->profile(\App\Filament\Pages\Auth\EditProfile::class)
             ->userMenuItems([
                 UserMenuItem::make('profile')

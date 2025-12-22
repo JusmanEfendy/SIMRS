@@ -29,6 +29,9 @@ class DireksiPanelProvider extends PanelProvider
             ->brandLogo(asset('images/logo-kemenkes.png'))
             ->brandLogoHeight('3rem')
             ->login()
+            ->colors([
+                'primary' => Color::hex('#14b8a6'),
+            ])
             ->passwordReset()
             ->profile(\App\Filament\Pages\Auth\EditProfile::class)
             ->userMenuItems([

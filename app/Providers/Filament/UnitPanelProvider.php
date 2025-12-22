@@ -29,6 +29,9 @@ class UnitPanelProvider extends PanelProvider
             ->login()
             ->passwordReset()
             ->profile(\App\Filament\Pages\Auth\EditProfile::class)
+            ->colors([
+                'primary' => Color::hex('#14b8a6'),
+            ])
             ->userMenuItems([
                 UserMenuItem::make('profile')
                     ->label(fn () => auth()->user()->name)
