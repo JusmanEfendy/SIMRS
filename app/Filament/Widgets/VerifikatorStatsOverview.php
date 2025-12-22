@@ -29,9 +29,9 @@ class VerifikatorStatsOverview extends BaseWidget
         // SOP Kadaluarsa
         $expiredSop = Sop::where('status', 'Kadaluarsa')->count();
         
-        // Segera Kadaluarsa (≤ 90 hari)
+        // Segera Kadaluarsa (≤ 30 hari)
         $expiringSoon = Sop::where('status', 'Aktif')
-            ->where('days_left', '<=', 90)
+            ->where('days_left', '<=', 30)
             ->where('days_left', '>', 0)
             ->count();
         
@@ -58,7 +58,7 @@ class VerifikatorStatsOverview extends BaseWidget
                 ->color('info'),
 
             Stat::make('Segera Kadaluarsa', $expiringSoon)
-                ->description('≤ 90 hari lagi')
+                ->description('≤ 30 hari lagi')
                 ->icon('heroicon-o-clock')
                 ->color('warning'),
 

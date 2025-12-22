@@ -63,6 +63,15 @@ class EditSop extends EditRecord
     }
 
     /**
+     * Hide the default form actions (Save Changes, Cancel buttons).
+     * The wizard's submit button will handle saving.
+     */
+    protected function getFormActions(): array
+    {
+        return [];
+    }
+
+    /**
      * Send notifications after SOP is updated.
      */
     protected function afterSave(): void
@@ -103,6 +112,14 @@ class EditSop extends EditRecord
             Notification::send($recipients, new SopUpdatedNotification($sop, $updater->name, $changedFields));
             Log::info('SOP Update notification sent successfully');
         }
+    }
+
+    /**
+     * Redirect to view page after successful edit.
+     */
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('view', ['record' => $this->getRecord()]);
     }
 
     /**

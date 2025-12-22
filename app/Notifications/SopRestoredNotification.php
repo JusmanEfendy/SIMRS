@@ -39,7 +39,8 @@ class SopRestoredNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        $viewUrl = '/admin/sops/' . $this->sop->id;
+        // Generate URL based on user role
+        $viewUrl = $this->getUrlForUser($notifiable);
 
         return [
             'title' => '♻️ SOP Dipulihkan',
@@ -73,5 +74,20 @@ class SopRestoredNotification extends Notification
     public function toDatabase(object $notifiable): array
     {
         return $this->toArray($notifiable);
+    }
+
+    /**
+     * Get the appropriate URL based on user role.
+     */
+    protected function getUrlForUser(object $notifiable): string
+    {
+        if ($notifiable->hasRole('Unit')) {
+            return '/unit/sops/' . $this->sop->id;
+        } elseif ($notifiable->hasRole('Direksi')) {
+            return '/direksi/sops/' . $this->sop->id;
+        } elseif ($notifiable->hasRole('Verifikator')) {
+            return '/verifikator/sops/' . $this->sop->id;
+        }
+        return '/admin/sops/' . $this->sop->id;
     }
 }
