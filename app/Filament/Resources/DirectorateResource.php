@@ -17,7 +17,17 @@ class DirectorateResource extends Resource
 {
     protected static ?string $model = Directorate::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
+
+    protected static ?string $navigationLabel = 'Direktorat';
+
+    protected static ?string $modelLabel = 'Direktorat';
+
+    protected static ?string $pluralModelLabel = 'Direktorat';
+
+    protected static ?string $navigationGroup = 'Struktur Organisasi';
+
+    protected static ?int $navigationSort = 1;
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -30,14 +40,20 @@ class DirectorateResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('dir_id')
                     ->label('ID Direktorat')
+                    ->unique(ignoreRecord: true)
+                    ->validationMessages([
+                        'unique' => 'ID Direktorat sudah digunakan.',
+                    ])
                     ->required()
-                    ->maxLength(50),
+                    ->maxLength(50)
+                    ->disabled(fn (string $operation): bool => $operation === 'edit')
+                    ->helperText(fn (string $operation): ?string => $operation === 'edit' ? 'ID Direktorat tidak dapat diubah karena sudah terhubung dengan data lain.' : null),
                 Forms\Components\TextInput::make('dir_name')
                     ->label('Nama Direktorat')
                     ->required()
                     ->maxLength(100),
                 Forms\Components\TextInput::make('dir_head_name')
-                    ->label('Kepala Direksi')
+                    ->label('Direksi')
                     ->required()
                     ->maxLength(100),
                 Forms\Components\TextInput::make('dir_telp')
@@ -68,10 +84,10 @@ class DirectorateResource extends Resource
                     ->label('Nama')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('dir_head_name')
-                    ->label('Kepala Direktorat')
+                    ->label('Direksi')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('dir_telp')
-                    ->label('Nomor Telp')
+                    ->label('Nomor Telepon')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('user_id')
                     ->numeric()

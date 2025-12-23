@@ -10,7 +10,7 @@
                     Siap Transformasi Digital?
                 </h2>
                 <p class="text-xl text-tosca-100 mb-8 max-w-2xl mx-auto">
-                    Bergabunglah dengan rumah sakit modern lainnya yang telah merasakan manfaat SIMRS kami
+                    Bergabunglah dengan rumah sakit modern lainnya yang telah merasakan manfaat SIPSOP kami
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <button class="bg-white text-tosca-600 px-8 py-4 rounded-xl font-semibold hover:shadow-2xl transition transform hover:scale-105">

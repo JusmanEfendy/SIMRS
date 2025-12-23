@@ -1,9 +1,9 @@
 @props(['stats'])
 
-<section class="py-20 bg-white relative" x-data="statsCounter({{ $stats['sop_count'] }}, {{ $stats['unit_count'] }}, {{ $stats['doc_count'] }})">
+<section class="py-20 bg-white relative" x-data="statsCounter({{ $stats['sop_count'] }}, {{ $stats['directorate_count'] }}, {{ $stats['unit_count'] }})">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid md:grid-cols-3 gap-8">
-            <!-- Stat Card 1 -->
+            <!-- Stat Card 1 - SOP Aktif -->
             <div class="bg-gradient-to-br from-tosca-500 to-tosca-700 rounded-3xl p-8 text-white card-hover relative overflow-hidden" data-aos="fade-up" data-aos-delay="0">
                 <div class="absolute top-0 right-0 opacity-10">
                     <i class="fas fa-file-medical text-9xl"></i>
@@ -11,51 +11,51 @@
                 <div class="relative z-10">
                     <div class="flex items-center justify-between mb-4">
                         <i class="fas fa-file-medical text-4xl"></i>
-                        <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-xs font-semibold">Active</span>
+                        <!-- <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-xs font-semibold">Active</span> -->
                     </div>
                     <h3 class="text-5xl font-bold mb-2" x-text="sopCount"></h3>
                     <p class="text-tosca-100 font-medium">SOP Aktif</p>
                     <div class="mt-4 flex items-center text-sm">
-                        <i class="fas fa-arrow-up mr-2"></i>
-                        <span>+12% dari bulan lalu</span>
+                        <i class="fas fa-file-alt mr-2"></i>
+                        <span>Dokumen terverifikasi</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Stat Card 2 -->
+            <!-- Stat Card 2 - Direktorat -->
             <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-3xl p-8 text-white card-hover relative overflow-hidden" data-aos="fade-up" data-aos-delay="200">
+                <div class="absolute top-0 right-0 opacity-10">
+                    <i class="fas fa-sitemap text-9xl"></i>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-4">
+                        <i class="fas fa-sitemap text-4xl"></i>
+                        <!-- <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-xs font-semibold">Struktur</span> -->
+                    </div>
+                    <h3 class="text-5xl font-bold mb-2" x-text="directorateCount"></h3>
+                    <p class="text-blue-100 font-medium">Direktorat</p>
+                    <div class="mt-4 flex items-center text-sm">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span>Direktorat aktif</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stat Card 3 - Unit Kerja -->
+            <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-3xl p-8 text-white card-hover relative overflow-hidden" data-aos="fade-up" data-aos-delay="400">
                 <div class="absolute top-0 right-0 opacity-10">
                     <i class="fas fa-building text-9xl"></i>
                 </div>
                 <div class="relative z-10">
                     <div class="flex items-center justify-between mb-4">
                         <i class="fas fa-building text-4xl"></i>
-                        <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-xs font-semibold">Online</span>
+                        <!-- <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-xs font-semibold">Online</span> -->
                     </div>
                     <h3 class="text-5xl font-bold mb-2" x-text="unitCount"></h3>
-                    <p class="text-blue-100 font-medium">Unit Kerja</p>
+                    <p class="text-green-100 font-medium">Unit Kerja</p>
                     <div class="mt-4 flex items-center text-sm">
-                        <i class="fas fa-check-circle mr-2"></i>
+                        <i class="fas fa-users mr-2"></i>
                         <span>Semua unit aktif</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stat Card 3 -->
-            <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-3xl p-8 text-white card-hover relative overflow-hidden" data-aos="fade-up" data-aos-delay="400">
-                <div class="absolute top-0 right-0 opacity-10">
-                    <i class="fas fa-check-double text-9xl"></i>
-                </div>
-                <div class="relative z-10">
-                    <div class="flex items-center justify-between mb-4">
-                        <i class="fas fa-check-double text-4xl"></i>
-                        <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-xs font-semibold">Verified</span>
-                    </div>
-                    <h3 class="text-5xl font-bold mb-2" x-text="docCount"></h3>
-                    <p class="text-green-100 font-medium">Dokumen Terverifikasi</p>
-                    <div class="mt-4 flex items-center text-sm">
-                        <i class="fas fa-shield-alt mr-2"></i>
-                        <span>100% compliance</span>
                     </div>
                 </div>
             </div>
@@ -65,16 +65,16 @@
 
 @push('scripts')
 <script>
-function statsCounter(sopTarget, unitTarget, docTarget) {
+function statsCounter(sopTarget, directorateTarget, unitTarget) {
     return {
         sopCount: 0,
+        directorateCount: 0,
         unitCount: 0,
-        docCount: 0,
 
         init() {
             this.animateCounter('sopCount', sopTarget, 2000);
+            this.animateCounter('directorateCount', directorateTarget, 2000);
             this.animateCounter('unitCount', unitTarget, 2000);
-            this.animateCounter('docCount', docTarget, 2000);
         },
 
         animateCounter(property, target, duration) {

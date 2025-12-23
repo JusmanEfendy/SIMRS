@@ -13,7 +13,7 @@ class SopPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['Unit', 'Verifikator']);
+        return $user->hasAnyRole(['Unit', 'Verifikator', 'Direksi', 'Direktorat']);
     }
 
     /**
@@ -21,16 +21,54 @@ class SopPolicy
      */
     public function view(User $user, Sop $sop): bool
     {
+        // Admin can view all SOPs
+        if ($user->hasRole('Admin')) {
+            return true;
+        }
+        
         // Verifikator can view all SOPs
         if ($user->hasRole('Verifikator')) {
             return true;
         }
         
-        // Unit can only view SOPs with status 'Aktif' that belong to their unit
+        // Direksi/Direktorat can view all SOPs where main unit OR collab units are in their directorate
+        if ($user->hasAnyRole(['Direksi', 'Direktorat'])) {
+            if (!$user->dir_id) {
+                return false;
+            }
+            
+            // Load the unit and collab units if not loaded
+            $sop->load(['unit', 'collabUnits']);
+            
+            // Check if main unit is in user's directorate
+            if ($sop->unit && (int) $sop->unit->dir_id === (int) $user->dir_id) {
+                return true;
+            }
+            
+            // Check if any collab unit is in user's directorate
+            foreach ($sop->collabUnits as $collabUnit) {
+                if ((int) $collabUnit->dir_id === (int) $user->dir_id) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        // Unit can only view SOPs with status 'Aktif' that belong to their unit OR is a collab unit
         if ($user->hasRole('Unit')) {
-            return $sop->status === 'Aktif' 
-                && $user->id_unit 
-                && $sop->id_unit === $user->id_unit;
+            if ($sop->status !== 'Aktif' || !$user->id_unit) {
+                return false;
+            }
+            
+            // Check if user's unit is the main unit
+            if ($sop->id_unit === $user->id_unit) {
+                return true;
+            }
+            
+            // Check if user's unit is a collab unit
+            $sop->load('collabUnits');
+            return $sop->collabUnits->contains('id_unit', $user->id_unit);
         }
         
         return false;

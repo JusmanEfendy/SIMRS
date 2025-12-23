@@ -1,6 +1,6 @@
 @extends('layouts.landing')
 
-@section('title', 'SmartCare SIMRS - Pelayanan Kesehatan Modern & Terintegrasi')
+@section('title', 'SIP SOP - Sistem Informasi Pengelolaan SOP Digital Rumah Sakit')
 
 @section('content')
     <!-- Navbar -->
@@ -25,5 +25,5 @@
     @include('partials.cta')
 
     <!-- Footer -->
-    @include('partials.footer')
+    {{-- @include('partials.footer') --}}
 @endsection

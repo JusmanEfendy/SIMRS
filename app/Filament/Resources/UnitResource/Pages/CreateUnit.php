@@ -16,6 +16,11 @@ class CreateUnit extends CreateRecord
             ->label('Simpan');
     }
 
+    public function getTitle(): string
+    {
+        return 'Tambah Unit Kerja';
+    }
+
     protected function getCreateAnotherFormAction(): Actions\Action
     {
         return parent::getCreateAnotherFormAction()

@@ -36,20 +36,30 @@ class UnitStatsOverview extends BaseWidget
             return $this->getEmptyStats();
         }
 
-        // Count SOPs for this unit
-        $totalSop = Sop::where('id_unit', $unitId)->count();
-        $activeSop = Sop::where('id_unit', $unitId)->where('status', 'Aktif')->count();
-        $expiredSop = Sop::where('id_unit', $unitId)->where('status', 'Kadaluarsa')->count();
+        // Helper function to build query for unit's SOPs (main OR collab)
+        $unitSopQuery = function () use ($unitId) {
+            return Sop::where(function ($q) use ($unitId) {
+                $q->where('id_unit', $unitId)
+                  ->orWhereHas('collabUnits', function ($subQuery) use ($unitId) {
+                      $subQuery->where('units.id_unit', $unitId);
+                  });
+            });
+        };
+
+        // Count SOPs for this unit (main + collab)
+        $totalSop = $unitSopQuery()->where('status', 'Aktif')->count();
+        $activeSop = $unitSopQuery()->where('status', 'Aktif')->count();
+        $expiredSop = $unitSopQuery()->where('status', 'Kadaluarsa')->count();
         
         // Expiring soon (≤ 90 days)
-        $expiringSoon = Sop::where('id_unit', $unitId)
+        $expiringSoon = $unitSopQuery()
             ->where('status', 'Aktif')
             ->where('days_left', '<=', 90)
             ->where('days_left', '>', 0)
             ->count();
 
         // Needs annual review (SOPs not updated for > 1 year)
-        $needsAnnualReview = Sop::where('id_unit', $unitId)
+        $needsAnnualReview = $unitSopQuery()
             ->where('status', 'Aktif')
             ->where('updated_at', '<=', now()->subYear())
             ->count();
@@ -115,7 +125,12 @@ class UnitStatsOverview extends BaseWidget
         $data = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i)->toDateString();
-            $data[] = Sop::where('id_unit', $unitId)
+            $data[] = Sop::where(function ($q) use ($unitId) {
+                    $q->where('id_unit', $unitId)
+                      ->orWhereHas('collabUnits', function ($subQuery) use ($unitId) {
+                          $subQuery->where('units.id_unit', $unitId);
+                      });
+                })
                 ->whereDate('created_at', '<=', $date)
                 ->count();
         }
@@ -130,7 +145,12 @@ class UnitStatsOverview extends BaseWidget
         $data = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i)->toDateString();
-            $data[] = Sop::where('id_unit', $unitId)
+            $data[] = Sop::where(function ($q) use ($unitId) {
+                    $q->where('id_unit', $unitId)
+                      ->orWhereHas('collabUnits', function ($subQuery) use ($unitId) {
+                          $subQuery->where('units.id_unit', $unitId);
+                      });
+                })
                 ->where('status', 'Aktif')
                 ->whereDate('created_at', '<=', $date)
                 ->count();

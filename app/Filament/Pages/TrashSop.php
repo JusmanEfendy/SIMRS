@@ -17,13 +17,15 @@ class TrashSop extends Page implements HasTable
 
     protected static ?string $navigationIcon = 'heroicon-o-trash';
 
-    protected static ?string $navigationLabel = 'Sampah SOP';
+    protected static ?string $navigationLabel = 'Sampah';
 
     protected static ?string $title = 'Sampah SOP';
 
     protected static ?string $slug = 'sampah-sop';
 
-    protected static ?int $navigationSort = 99;
+    protected static ?string $navigationGroup = 'Manajemen SOP';
+
+    protected static ?int $navigationSort = 3;
 
     protected static string $view = 'filament.pages.trash-sop';
 
@@ -91,7 +93,7 @@ class TrashSop extends Page implements HasTable
                     ->modalSubmitActionLabel('Ya, Pulihkan')
                     ->action(function (Sop $record) {
                         $record->restore();
-                        
+
                         Notification::make()
                             ->success()
                             ->title('SOP Dipulihkan')
@@ -111,7 +113,7 @@ class TrashSop extends Page implements HasTable
                     ->action(function (Sop $record) {
                         $sopName = $record->sop_name;
                         $record->forceDelete();
-                        
+
                         Notification::make()
                             ->success()
                             ->title('SOP Dihapus Permanen')
@@ -131,7 +133,7 @@ class TrashSop extends Page implements HasTable
                     ->action(function ($records) {
                         $count = $records->count();
                         $records->each->restore();
-                        
+
                         Notification::make()
                             ->success()
                             ->title('SOP Dipulihkan')
@@ -152,7 +154,7 @@ class TrashSop extends Page implements HasTable
                     ->action(function ($records) {
                         $count = $records->count();
                         $records->each->forceDelete();
-                        
+
                         Notification::make()
                             ->success()
                             ->title('SOP Dihapus Permanen')

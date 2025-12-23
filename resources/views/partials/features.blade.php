@@ -3,7 +3,7 @@
         <!-- Section Header -->
         <div class="text-center mb-16" data-aos="fade-up">
             <h2 class="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-                Keunggulan <span class="text-tosca-600 dark:text-tosca-400">SIMRS Kami</span>
+                Keunggulan <span class="text-tosca-600 dark:text-tosca-400">SIPSOP Kami</span>
             </h2>
             <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
                 Mengapa rumah sakit terkemuka memilih sistem kami

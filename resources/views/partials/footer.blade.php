@@ -8,8 +8,8 @@
                         <i class="fas fa-hospital text-white text-2xl"></i>
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-white">SmartCare</h3>
-                        <p class="text-xs text-tosca-400">SIMRS Digital</p>
+                        <h3 class="text-xl font-bold text-white">SIPSOP</h3>
+                        <p class="text-xs text-tosca-400">SIPSOP Digital</p>
                     </div>
                 </div>
                 <p class="text-gray-400 mb-6">
@@ -61,15 +61,15 @@
                 <ul class="space-y-4">
                     <li class="flex items-start space-x-3">
                         <i class="fas fa-map-marker-alt text-tosca-500 mt-1"></i>
-                        <span>Jl. Kesehatan No. 123<br>Jakarta Selatan, 12345</span>
+                        <span>Jl. Diponegoro<br>Denpasar, Bali 80113</span>
                     </li>
                     <li class="flex items-center space-x-3">
                         <i class="fas fa-phone text-tosca-500"></i>
-                        <span>(021) 1234-5678</span>
+                        <span>(0361) 227-911</span>
                     </li>
                     <li class="flex items-center space-x-3">
                         <i class="fas fa-envelope text-tosca-500"></i>
-                        <span>info@smartcare.com</span>
+                        <span>info@profngoerahhospitalbali.com</span>
                     </li>
                     <li class="flex items-center space-x-3">
                         <i class="fas fa-clock text-tosca-500"></i>
@@ -83,7 +83,7 @@
         <div class="border-t border-gray-800 dark:border-gray-700 pt-8">
             <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                 <p class="text-gray-400 text-sm">
-                    © {{ date('Y') }} SmartCare SIMRS. All rights reserved.
+                    © {{ date('Y') }}  SIP SOP. All rights reserved.
                 </p>
                 <div class="flex space-x-6 text-sm">
                     <a href="#" class="hover:text-tosca-400 transition">Privacy Policy</a>

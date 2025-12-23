@@ -37,7 +37,7 @@
                 </button>
 
                 <a href="{{ route('filament.admin.auth.login') }}" class="gradient-tosca text-white px-6 py-2.5 rounded-xl font-semibold hover:shadow-lg transition btn-ripple">
-                    <i class="fas fa-sign-in-alt mr-2"></i>Login SIMRS
+                    <i class="fas fa-sign-in-alt mr-2"></i>Login SIPSOP
                 </a>
             </div>
 
@@ -76,7 +76,7 @@
             <a href="#jadwal" class="block text-gray-700 dark:text-gray-200 hover:text-tosca-600 dark:hover:text-tosca-400 font-medium">Jadwal</a>
             <a href="#kontak" class="block text-gray-700 dark:text-gray-200 hover:text-tosca-600 dark:hover:text-tosca-400 font-medium">Kontak</a>
             <a href="{{ route('filament.admin.auth.login') }}" class="block w-full gradient-tosca text-white px-6 py-2.5 rounded-xl font-semibold text-center">
-                <i class="fas fa-sign-in-alt mr-2"></i>Login SIMRS
+                <i class="fas fa-sign-in-alt mr-2"></i>Login SIPSOP
             </a>
         </div>
     </div>

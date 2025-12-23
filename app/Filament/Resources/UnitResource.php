@@ -17,7 +17,17 @@ class UnitResource extends Resource
 {
     protected static ?string $model = Unit::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-building-office';
+
+    protected static ?string $navigationLabel = 'Unit Kerja';
+
+    protected static ?string $modelLabel = 'Unit Kerja';
+
+    protected static ?string $pluralModelLabel = 'Unit Kerja';
+
+    protected static ?string $navigationGroup = 'Struktur Organisasi';
+
+    protected static ?int $navigationSort = 1;
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -30,8 +40,11 @@ class UnitResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('id_unit')
                     ->label('ID Unit')
+                    ->unique(ignoreRecord: true)
                     ->required()
-                    ->maxLength(50),
+                    ->maxLength(50)
+                    ->disabled(fn (string $operation): bool => $operation === 'edit')
+                    ->helperText(fn (string $operation): ?string => $operation === 'edit' ? 'ID Unit tidak dapat diubah karena sudah terhubung dengan data lain.' : null),
                 Forms\Components\TextInput::make('unit_name')
                     ->required()
                     ->label('Nama Unit')
@@ -77,7 +90,7 @@ class UnitResource extends Resource
                     ->label('Kepala Unit')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('unit_telp')
-                    ->label('Nomor Telp')
+                    ->label('Nomor Telepon')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('directorate.dir_name')
                     ->label('Direktorat')

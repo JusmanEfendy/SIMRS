@@ -18,19 +18,19 @@ class SopHistoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clock';
 
-    protected static ?string $navigationLabel = 'Riwayat SOP';
+    protected static ?string $navigationLabel = 'Riwayat';
 
     protected static ?string $modelLabel = 'Riwayat SOP';
 
     protected static ?string $pluralModelLabel = 'Riwayat SOP';
 
-    protected static ?string $navigationGroup = 'Dokumen';
+    protected static ?string $navigationGroup = 'Manajemen SOP';
 
     protected static ?int $navigationSort = 2;
 
     public static function shouldRegisterNavigation(): bool
     {
-        return auth()->user()?->hasAnyRole(['Direksi', 'Direktorat']);
+        return auth()->user()?->hasAnyRole(['Direksi', 'Direktorat', 'Verifikator']);
     }
 
     public static function table(Table $table): Table
@@ -230,13 +230,14 @@ class SopHistoryResource extends Resource
     }
 
     /**
-     * Hanya Direksi yang bisa mengakses menu ini.
+     * Direksi dan Verifikator bisa mengakses menu ini.
      */
     public static function canAccess(): bool
     {
         return auth()->check() && (
             auth()->user()->hasRole('Direksi') || 
-            auth()->user()->hasRole('Direktorat')
+            auth()->user()->hasRole('Direktorat') ||
+            auth()->user()->hasRole('Verifikator')
         );
     }
 }

@@ -1,32 +1,33 @@
 <!DOCTYPE html>
-<html lang="id" x-data="{ 
-    darkMode: localStorage.getItem('darkMode') === 'true' || 
+<html lang="id" x-data="{
+    darkMode: localStorage.getItem('darkMode') === 'true' ||
         (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)
-}" 
+}"
 x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))"
 :class="{ 'dark': darkMode }">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'SmartCare SIMRS - Sistem Informasi Manajemen Rumah Sakit')</title>
-    
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-fav.png') }}">
+    <title>@yield('title', 'SmartCare SIMRS - Sistem Informasi Manajemen Rumah sakit')</title>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+
     <!-- AOS Animation -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    
+
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -53,17 +54,17 @@ x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))"
             }
         }
     </script>
-    
+
     <!-- Custom Styles -->
     <link rel="stylesheet" href="{{ asset('css/landing.css') }}">
-    
+
     @stack('styles')
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     @yield('content')
-    
+
     @stack('scripts')
-    
+
     <script>
         // Initialize AOS
         AOS.init({
@@ -71,7 +72,7 @@ x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))"
             once: true,
             offset: 100
         });
-        
+
         // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -87,7 +88,7 @@ x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))"
                 }
             });
         });
-        
+
         // Navbar background on scroll
         window.addEventListener('scroll', function() {
             const navbar = document.querySelector('nav');

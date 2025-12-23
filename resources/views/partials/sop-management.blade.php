@@ -31,7 +31,7 @@
                         </div>
                         <div>
                             <h4 class="font-semibold text-gray-900 dark:text-white mb-1">Smart Search</h4>
-                            <p class="text-gray-600 dark:text-gray-400 text-sm">Temukan SOP yang dibutuhkan dengan cepat menggunakan AI search</p>
+                            <p class="text-gray-600 dark:text-gray-400 text-sm">Temukan SOP yang dibutuhkan dengan cepat</p>
                         </div>
                     </div>
 
@@ -46,9 +46,9 @@
                     </div>
                 </div>
 
-                <button class="gradient-tosca text-white px-8 py-4 rounded-xl font-semibold hover:shadow-2xl transition transform hover:scale-105">
+                {{-- <button class="gradient-tosca text-white px-8 py-4 rounded-xl font-semibold hover:shadow-2xl transition transform hover:scale-105">
                     <i class="fas fa-eye mr-2"></i>Lihat Demo SOP
-                </button>
+                </button> --}}
             </div>
 
             <!-- Right Timeline -->
