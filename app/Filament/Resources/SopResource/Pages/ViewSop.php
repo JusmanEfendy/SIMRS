@@ -36,7 +36,8 @@ class ViewSop extends ViewRecord
         }
 
         $verifikator = auth()->user();
-        $viewUrl = $sopId ? SopResource::getUrl('view', ['record' => $sopId]) : null;
+        // Generate URL based on recipient's role
+        $viewUrl = $sopId ? $this->getUrlForUser($recipient, $sopId) : null;
 
         try {
             // Data notifikasi dengan format Filament yang lengkap
@@ -252,6 +253,21 @@ class ViewSop extends ViewRecord
                 })
                 ->visible(fn ($record) => filled($record->file_path)),
         ];
+    }
+
+    /**
+     * Get the appropriate URL based on user role.
+     */
+    private function getUrlForUser($user, int $sopId): string
+    {
+        if ($user->hasRole('Unit')) {
+            return '/unit/sops/' . $sopId;
+        } elseif ($user->hasRole('Direksi')) {
+            return '/direksi/sops/' . $sopId;
+        } elseif ($user->hasRole('Verifikator')) {
+            return '/verifikator/sops/' . $sopId;
+        }
+        return '/admin/sops/' . $sopId;
     }
 }
 

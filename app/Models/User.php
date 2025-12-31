@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Testing\Fluent\Concerns\Has;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -24,6 +23,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'id_unit',
+        'dir_id',
     ];
 
     /**
@@ -47,5 +48,22 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the unit that this user belongs to.
+     */
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class, 'id_unit', 'id_unit');
+    }
+
+    /**
+     * Get the directorate that this user manages (for Direksi/Direktorat role).
+     * Uses dir_id column in users table.
+     */
+    public function managedDirectorate()
+    {
+        return $this->belongsTo(Directorate::class, 'dir_id');
     }
 }

@@ -21,18 +21,34 @@ use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Althinect\FilamentSpatieRolesPermissions\FilamentSpatieRolesPermissionsPlugin;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Contracts\View\View;
+use Filament\Facades\Filament;
+use Filament\Navigation\UserMenuItem;
 
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
             ->id('admin')
+            ->brandLogo(asset('images/logo-kemenkes.png'))
+            ->brandLogoHeight('3rem')
             ->path('admin')
+            ->authGuard('web')
             ->login()
+            ->passwordReset()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#d6a2f8ff'),
+            ])
+            ->profile(\App\Filament\Pages\Auth\EditProfile::class)
+            ->userMenuItems([
+                UserMenuItem::make('profile')
+                    ->label(fn () => auth()->user()->name)
+                    // ->url(fn () => Filament::getProfileUrl())
+                    ->icon('heroicon-o-user-circle'),
+                ])
+            ->authMiddleware([
+                Authenticate::class,
+                'role:Admin',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
@@ -42,7 +58,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
-                FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -55,11 +70,11 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->authMiddleware([
-                Authenticate::class,
-            ])
+
             ->plugin(FilamentSpatieRolesPermissionsPlugin::make())
-            ->databaseNotifications()
+            ->databaseNotifications(
+                condition: fn () => auth()->check() && !auth()->user()->hasRole('Admin')
+            )
             ->databaseNotificationsPolling('5s')
             ->renderHook(
                 PanelsRenderHook::HEAD_END,

@@ -24,11 +24,20 @@ class SopResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationLabel = 'Dokumen SOP';
+    protected static ?string $navigationLabel = 'Pengajuan SOP';
 
-    protected static ?string $modelLabel = 'SOP';
+    protected static ?string $modelLabel = 'Pengajuan SOP';
 
-    protected static ?string $pluralModelLabel = 'Dokumen SOP';
+    protected static ?string $pluralModelLabel = 'Pengajuan SOP';
+
+    protected static ?string $navigationGroup = 'Manajemen SOP';
+
+    protected static ?int $navigationSort = 1;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasAnyRole(['Admin', 'Verifikator', 'Unit', 'Direksi']);
+    }
 
     public static function form(Form $form): Form
     {
@@ -57,17 +66,30 @@ class SopResource extends Resource
                                             Forms\Components\TextInput::make('sk_number')
                                                 ->label('Nomor SK')
                                                 ->placeholder('Masukkan nomor SK...')
-                                                ->helperText('Contoh: SK/001/2024')
+                                                ->helperText('Contoh: SK/001/2024 (minimal 3 karakter, tanpa spasi)')
                                                 ->required()
+                                                ->unique(ignoreRecord: true)
+                                                ->minLength(3)
                                                 ->maxLength(100)
+                                                ->regex('/^[^\s]+$/')
+                                                ->validationMessages([
+                                                    'regex' => 'Nomor SK tidak boleh mengandung spasi.',
+                                                    'min' => 'Nomor SK minimal 3 karakter.',
+                                                ])
                                                 ->prefixIcon('heroicon-o-document-duplicate'),
                                         ]),
                                     Forms\Components\TextInput::make('sop_name')
                                         ->label('Nama SOP')
                                         ->placeholder('Masukkan nama lengkap SOP...')
-                                        ->helperText('Nama SOP yang jelas dan deskriptif')
+                                        ->helperText('Nama SOP yang jelas dan deskriptif (minimal 5 karakter)')
                                         ->required()
+                                        ->minLength(5)
                                         ->maxLength(100)
+                                        ->regex('/^[a-zA-Z0-9\s\-\/\(\)\.,]+$/')
+                                        ->validationMessages([
+                                            'min' => 'Nama SOP minimal 5 karakter.',
+                                            'regex' => 'Nama SOP hanya boleh berisi huruf, angka, spasi, dan karakter - / ( ) . ,',
+                                        ])
                                         ->prefixIcon('heroicon-o-document-text')
                                         ->columnSpanFull(),
                                 ]),
@@ -86,7 +108,8 @@ class SopResource extends Resource
                                                 ->searchable()
                                                 ->preload()
                                                 ->required()
-                                                ->prefixIcon('heroicon-o-building-office-2'),
+                                                ->prefixIcon('heroicon-o-building-office-2')
+                                                ->live(),
                                             Forms\Components\Select::make('type_sop')
                                                 ->label('Tipe SOP')
                                                 ->placeholder('Pilih tipe SOP...')
@@ -96,15 +119,40 @@ class SopResource extends Resource
                                                 ])
                                                 ->required()
                                                 ->native(false)
-                                                ->prefixIcon('heroicon-o-tag'),
+                                                ->prefixIcon('heroicon-o-tag')
+                                                ->live(),
                                         ]),
+
+                                    // Unit Terkait - hanya muncul jika tipe AP
+                                    Forms\Components\Select::make('collabUnits')
+                                        ->label('Unit Terkait (Kolaborasi)')
+                                        ->placeholder('Pilih unit yang terkait...')
+                                        ->relationship('collabUnits', 'unit_name')
+                                        ->multiple()
+                                        ->searchable()
+                                        ->preload()
+                                        ->prefixIcon('heroicon-o-user-group')
+                                        ->helperText('Wajib pilih minimal 1 unit kolaborasi untuk SOP tipe AP')
+                                        ->visible(fn (callable $get) => $get('type_sop') === 'AP')
+                                        ->required(fn (callable $get) => $get('type_sop') === 'AP')
+                                        ->minItems(fn (callable $get) => $get('type_sop') === 'AP' ? 1 : 0)
+                                        ->validationMessages([
+                                            'required' => 'Unit Kolaborasi wajib diisi untuk SOP tipe AP.',
+                                            'min' => 'Minimal pilih 1 unit kolaborasi untuk SOP tipe AP.',
+                                        ])
+                                        ->options(function (callable $get) {
+                                            $selectedUnitId = $get('id_unit');
+                                            return \App\Models\Unit::query()
+                                                ->when($selectedUnitId, fn ($query) => $query->where('id_unit', '!=', $selectedUnitId))
+                                                ->pluck('unit_name', 'id_unit');
+                                        }),
                                 ]),
 
                             // Hidden fields
                             Forms\Components\Hidden::make('user_id')
                                 ->default(fn () => auth()->id()),
                             Forms\Components\Hidden::make('status')
-                                ->default('Pending'),
+                                ->default('Aktif'),
                         ]),
 
                     // ========== STEP 2: Dokumen & Deskripsi ==========
@@ -120,8 +168,16 @@ class SopResource extends Resource
                                         ->label('File Dokumen SOP')
                                         ->directory('sop-files')
                                         ->acceptedFileTypes(['application/pdf'])
+                                        ->minSize(1) // Minimal 1KB untuk mencegah file kosong
                                         ->maxSize(10240) // 10MB
-                                        ->helperText('Format: PDF, Maksimal ukuran: 10MB')
+                                        ->helperText('Format: PDF, Ukuran: minimal 1KB, maksimal 10MB')
+                                        ->required()
+                                        ->validationMessages([
+                                            'required' => 'File dokumen SOP wajib diunggah.',
+                                            'min' => 'Ukuran file terlalu kecil, minimal 1KB.',
+                                            'max' => 'Ukuran file terlalu besar, maksimal 10MB.',
+                                            'mimes' => 'File harus berformat PDF.',
+                                        ])
                                         ->downloadable()
                                         ->openable()
                                         ->previewable(true)
@@ -136,7 +192,11 @@ class SopResource extends Resource
                                     Forms\Components\RichEditor::make('desc')
                                         ->label('')
                                         ->placeholder('Tuliskan deskripsi atau ringkasan SOP di sini...')
-                                        ->helperText('Opsional - Jelaskan tujuan dan ruang lingkup SOP')
+                                        ->helperText('Opsional - Jelaskan tujuan dan ruang lingkup SOP (maksimal 2000 karakter)')
+                                        ->maxLength(2000)
+                                        ->validationMessages([
+                                            'max' => 'Deskripsi tidak boleh lebih dari 2000 karakter.',
+                                        ])
                                         ->toolbarButtons([
                                             'bold',
                                             'italic',
@@ -162,20 +222,46 @@ class SopResource extends Resource
                                             Forms\Components\DatePicker::make('approval_date')
                                                 ->label('Tanggal Pengesahan')
                                                 ->placeholder('Pilih tanggal...')
-                                                ->helperText('Tanggal SOP disahkan')
+                                                ->helperText('Tanggal SOP disahkan (tidak boleh di masa depan)')
                                                 ->required()
                                                 ->native(false)
                                                 ->displayFormat('d F Y')
-                                                ->prefixIcon('heroicon-o-check-badge'),
+                                                ->prefixIcon('heroicon-o-check-badge')
+                                                ->maxDate(now())
+                                                ->live()
+                                                ->validationMessages([
+                                                    'required' => 'Tanggal pengesahan wajib diisi.',
+                                                    'max_date' => 'Tanggal pengesahan tidak boleh di masa depan.',
+                                                ])
+                                                ->rules([
+                                                    fn (callable $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
+                                                        $startDate = $get('start_date');
+                                                        if ($startDate && $value && Carbon::parse($value)->gt(Carbon::parse($startDate))) {
+                                                            $fail('Tanggal pengesahan harus sebelum atau sama dengan tanggal berlaku.');
+                                                        }
+                                                    },
+                                                ]),
                                             Forms\Components\DatePicker::make('start_date')
                                                 ->label('Tanggal Berlaku')
                                                 ->placeholder('Pilih tanggal...')
-                                                ->helperText('SOP mulai berlaku sejak tanggal ini')
+                                                ->helperText('SOP mulai berlaku sejak tanggal ini (harus setelah tanggal pengesahan)')
                                                 ->required()
                                                 ->native(false)
                                                 ->displayFormat('d F Y')
                                                 ->prefixIcon('heroicon-o-play')
                                                 ->live()
+                                                ->validationMessages([
+                                                    'required' => 'Tanggal berlaku wajib diisi.',
+                                                    'after_or_equal' => 'Tanggal berlaku harus setelah atau sama dengan tanggal pengesahan.',
+                                                ])
+                                                ->rules([
+                                                    fn (callable $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
+                                                        $approvalDate = $get('approval_date');
+                                                        if ($approvalDate && $value && Carbon::parse($value)->lt(Carbon::parse($approvalDate))) {
+                                                            $fail('Tanggal berlaku harus setelah atau sama dengan tanggal pengesahan.');
+                                                        }
+                                                    },
+                                                ])
                                                 ->afterStateUpdated(function (callable $set, $state) {
                                                     if ($state) {
                                                         $expiredDate = Carbon::parse($state)->addYears(3);
@@ -206,15 +292,15 @@ class SopResource extends Resource
                                 ]),
 
                             // Ringkasan sebelum submit
-                            Forms\Components\Section::make('✅ Konfirmasi')
-                                ->description('Pastikan semua data sudah benar sebelum menyimpan')
-                                ->icon('heroicon-o-check-circle')
-                                ->schema([
-                                    Forms\Components\Placeholder::make('info')
-                                        ->label('')
-                                        ->content('Setelah menyimpan, dokumen SOP akan berstatus "Pending" dan menunggu proses review dari Verifikator.')
-                                        ->columnSpanFull(),
-                                ]),
+                            // Forms\Components\Section::make('✅ Konfirmasi')
+                            //     ->description('Pastikan semua data sudah benar sebelum menyimpan')
+                            //     ->icon('heroicon-o-check-circle')
+                            //     ->schema([
+                            //         Forms\Components\Placeholder::make('info')
+                            //             ->label('')
+                            //             ->content('Setelah menyimpan, dokumen SOP akan berstatus "Aktif" dan dapat dilihat oleh Unit terkait.')
+                            //             ->columnSpanFull(),
+                            //     ]),
 
                             // Hidden feedback field
                             Forms\Components\Hidden::make('feedback'),
@@ -222,7 +308,8 @@ class SopResource extends Resource
                 ])
                 ->skippable()
                 ->persistStepInQueryString()
-                ->columnSpanFull(),
+                ->columnSpanFull()
+                ->submitAction(view('filament.components.wizard-submit-action')),
             ]);
     }
 
@@ -253,19 +340,13 @@ class SopResource extends Resource
                                     ->badge()
                                     ->size(Components\TextEntry\TextEntrySize::Large)
                                     ->color(fn (string $state): string => match ($state) {
-                                        'Pending' => 'warning',
-                                        'In Review' => 'info',
-                                        'Approve' => 'success',
-                                        'Rejected' => 'danger',
-                                        'Expired' => 'gray',
+                                        'Aktif' => 'success',
+                                        'Kadaluarsa' => 'danger',
                                         default => 'secondary',
                                     })
                                     ->icon(fn (string $state): string => match ($state) {
-                                        'Pending' => 'heroicon-o-clock',
-                                        'In Review' => 'heroicon-o-magnifying-glass',
-                                        'Approve' => 'heroicon-o-check-circle',
-                                        'Rejected' => 'heroicon-o-x-circle',
-                                        'Expired' => 'heroicon-o-exclamation-triangle',
+                                        'Aktif' => 'heroicon-o-check-circle',
+                                        'Kadaluarsa' => 'heroicon-o-exclamation-triangle',
                                         default => 'heroicon-o-question-mark-circle',
                                     }),
                             ])->grow(false),
@@ -300,9 +381,13 @@ class SopResource extends Resource
                                         'NonAP' => 'heroicon-o-document',
                                         default => 'heroicon-o-document',
                                     }),
-                                Components\TextEntry::make('unit.unit_name')
-                                    ->label('Unit Kerja')
-                                    ->icon('heroicon-o-building-office'),
+                                Components\TextEntry::make('collabUnits.unit_name')
+                                    ->label('Unit Kolaborasi')
+                                    ->icon('heroicon-o-user-group')
+                                    ->badge()
+                                    ->color('info')
+                                    ->placeholder('Tidak ada unit kolaborasi')
+                                    ->visible(fn ($record) => $record->collabUnits->isNotEmpty()),
                                 Components\TextEntry::make('user.name')
                                     ->label('Dibuat Oleh')
                                     ->icon('heroicon-o-user'),
@@ -331,7 +416,29 @@ class SopResource extends Resource
                                     ->color(fn ($record) => $record->expired < now() ? 'danger' : 'warning'),
                                 Components\TextEntry::make('days_left')
                                     ->label('Sisa Masa Berlaku')
-                                    ->suffix(' hari')
+                                    ->formatStateUsing(function (int $state): string {
+                                        if ($state <= 0) {
+                                            return 'Sudah Kadaluarsa';
+                                        }
+                                        
+                                        $years = floor($state / 365);
+                                        $remainingDays = $state % 365;
+                                        $months = floor($remainingDays / 30);
+                                        $days = $remainingDays % 30;
+                                        
+                                        $parts = [];
+                                        if ($years > 0) {
+                                            $parts[] = $years . ' tahun';
+                                        }
+                                        if ($months > 0) {
+                                            $parts[] = $months . ' bulan';
+                                        }
+                                        if ($days > 0 || empty($parts)) {
+                                            $parts[] = $days . ' hari';
+                                        }
+                                        
+                                        return implode(' ', $parts);
+                                    })
                                     ->icon('heroicon-o-clock')
                                     ->color(fn (int $state): string => match (true) {
                                         $state <= 30 => 'danger',
@@ -407,7 +514,8 @@ class SopResource extends Resource
                     ->weight('bold')
                     ->color('primary')
                     ->icon('heroicon-o-hashtag')
-                    ->tooltip('Klik untuk menyalin ID'),
+                    ->tooltip('Klik untuk menyalin ID')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('sop_name')
                     ->label('Nama SOP')
@@ -459,27 +567,18 @@ class SopResource extends Resource
                     ->badge()
                     ->alignCenter()
                     ->color(fn (string $state): string => match ($state) {
-                        'Pending' => 'warning',
-                        'In Review' => 'info',
-                        'Approve' => 'success',
-                        'Rejected' => 'danger',
-                        'Expired' => 'gray',
+                        'Aktif' => 'success',
+                        'Kadaluarsa' => 'danger',
                         default => 'secondary',
                     })
                     ->icon(fn (string $state): string => match ($state) {
-                        'Pending' => 'heroicon-o-clock',
-                        'In Review' => 'heroicon-o-magnifying-glass',
-                        'Approve' => 'heroicon-o-check-circle',
-                        'Rejected' => 'heroicon-o-x-circle',
-                        'Expired' => 'heroicon-o-exclamation-triangle',
+                        'Aktif' => 'heroicon-o-check-circle',
+                        'Kadaluarsa' => 'heroicon-o-exclamation-triangle',
                         default => 'heroicon-o-question-mark-circle',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'Pending' => 'Menunggu',
-                        'In Review' => 'Direview',
-                        'Approve' => 'Disetujui',
-                        'Rejected' => 'Ditolak',
-                        'Expired' => 'Kadaluarsa',
+                        'Aktif' => 'Aktif',
+                        'Kadaluarsa' => 'Kadaluarsa',
                         default => $state,
                     }),
 
@@ -575,11 +674,8 @@ class SopResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Status')
                     ->options([
-                        'Pending' => '⏳ Pending',
-                        'In Review' => '🔍 In Review',
-                        'Approve' => '✅ Disetujui',
-                        'Rejected' => '❌ Ditolak',
-                        'Expired' => '⚠️ Kadaluarsa',
+                        'Aktif' => '✅ Aktif',
+                        'Kadaluarsa' => '⚠️ Kadaluarsa',
                     ])
                     ->placeholder('Semua Status')
                     ->indicator('Status'),
@@ -603,7 +699,7 @@ class SopResource extends Resource
 
                 Tables\Filters\Filter::make('expiring_soon')
                     ->label('Segera Kadaluarsa')
-                    ->query(fn (Builder $query): Builder => $query->where('days_left', '<=', 90)->where('days_left', '>', 0))
+                    ->query(fn (Builder $query): Builder => $query->where('days_left', '<=', 30)->where('days_left', '>', 0))
                     ->toggle()
                     ->indicator('Segera Kadaluarsa'),
 
@@ -624,20 +720,22 @@ class SopResource extends Resource
                         ->icon('heroicon-o-pencil')
                         ->color('warning')
                         ->tooltip('Edit SOP'),
-                    Tables\Actions\Action::make('review')
-                        ->label('Mulai Review')
+                    Tables\Actions\Action::make('nonaktifkan')
+                        ->label('Non-aktifkan')
                         ->requiresConfirmation()
-                        ->visible(fn (Sop $record) => auth()->user()->hasRole('Verifikator') && $record->status === 'Pending')
-                        ->icon('heroicon-o-clipboard-document-check')
-                        ->color('success')
-                        ->modalIcon('heroicon-o-clipboard-document-check')
-                        ->modalHeading('Konfirmasi Review SOP')
-                        ->modalDescription(fn (Sop $record) => "Anda akan memulai review untuk:\n\n📄 {$record->sop_name}\n📋 SK: {$record->sk_number}")
-                        ->modalSubmitActionLabel('Ya, Mulai Review')
-                        ->tooltip('Mulai proses review SOP ini')
+                        ->visible(fn (Sop $record) => auth()->user()->hasRole('Verifikator') && $record->status === 'Aktif')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->modalIcon('heroicon-o-x-circle')
+                        ->modalHeading('Konfirmasi Non-aktifkan SOP')
+                        ->modalDescription(fn (Sop $record) => "Anda akan menonaktifkan SOP ini:\n\n📄 {$record->sop_name}\n📋 SK: {$record->sk_number}")
+                        ->modalSubmitActionLabel('Ya, Non-aktifkan')
+                        ->tooltip('Non-aktifkan SOP ini')
                         ->action(function (Sop $record) {
-                            $record->update(['status' => 'In Review']);
-                            return redirect(static::getUrl('view', ['record' => $record]));
+                            $record->update([
+                                'status' => 'Kadaluarsa',
+                                'days_left' => 0,
+                            ]);
                         }),
                     Tables\Actions\Action::make('download')
                         ->label('Download PDF')
@@ -654,10 +752,6 @@ class SopResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->icon('heroicon-o-trash'),
-                    Tables\Actions\ForceDeleteBulkAction::make()
-                        ->icon('heroicon-o-trash'),
                     Tables\Actions\RestoreBulkAction::make()
                         ->icon('heroicon-o-arrow-path'),
                 ]),
@@ -695,10 +789,56 @@ class SopResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->with(['unit', 'collabUnits']); // Eager load for policy checks
+
+        // Unit hanya bisa melihat SOP dengan status Aktif dan yang terkait dengan unit mereka
+        if (auth()->check() && auth()->user()->hasRole('Unit')) {
+            $userIdUnit = auth()->user()->id_unit;
+
+            $query->where('status', 'Aktif');
+
+            // Filter by user's id_unit OR user's unit is in collab units
+            if ($userIdUnit) {
+                $query->where(function ($q) use ($userIdUnit) {
+                    // SOP dimana unit user adalah unit utama
+                    $q->where('id_unit', $userIdUnit)
+                      // ATAU SOP dimana unit user adalah unit kolaborasi
+                      ->orWhereHas('collabUnits', function ($subQuery) use ($userIdUnit) {
+                          $subQuery->where('units.id_unit', $userIdUnit);
+                      });
+                });
+            } else {
+                // If user has no associated unit, show nothing
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        // Direksi/Direktorat hanya bisa melihat SOP dari unit di bawah direktorat mereka
+        if (auth()->check() && auth()->user()->hasAnyRole(['Direksi', 'Direktorat'])) {
+            $userDirId = auth()->user()->dir_id;
+
+            if ($userDirId) {
+                $query->where(function ($q) use ($userDirId) {
+                    // SOP dimana unit utama berada di bawah direktorat user
+                    $q->whereHas('unit', function ($subQuery) use ($userDirId) {
+                        $subQuery->where('dir_id', $userDirId);
+                    })
+                    // ATAU SOP dimana salah satu unit kolaborasi berada di bawah direktorat user
+                    ->orWhereHas('collabUnits', function ($subQuery) use ($userDirId) {
+                        $subQuery->where('dir_id', $userDirId);
+                    });
+                });
+            } else {
+                // If user has no associated directorate, show nothing
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        return $query;
     }
 }
 

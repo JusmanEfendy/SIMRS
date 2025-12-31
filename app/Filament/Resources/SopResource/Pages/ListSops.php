@@ -13,7 +13,9 @@ class ListSops extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+            ->label('Buat SOP Baru')
+            ->icon('heroicon-o-document-plus'),
         ];
     }
 }

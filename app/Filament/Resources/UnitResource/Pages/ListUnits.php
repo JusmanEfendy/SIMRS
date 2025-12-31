@@ -13,7 +13,9 @@ class ListUnits extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+            ->label('Tambah')
+            ->icon('heroicon-o-document-plus'),
         ];
     }
 }
